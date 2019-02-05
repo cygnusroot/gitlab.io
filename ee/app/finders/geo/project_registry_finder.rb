@@ -2,16 +2,18 @@
 
 module Geo
   class ProjectRegistryFinder < RegistryFinder
+    include Gitlab::Utils::StrongMemoize
+
     def count_projects
       current_node.projects.count
     end
 
     def count_synced_repositories
       relation =
-        if selective_sync?
-          legacy_find_synced_repositories
+        if use_fdw_queries_for_selective_sync_enabled?
+          Geo::ProjectRegistrySyncedFinder.new(:repository).execute
         else
-          find_synced_repositories
+          legacy_registry_finder.synced_repositories
         end
 
       relation.count
@@ -19,10 +21,10 @@ module Geo
 
     def count_synced_wikis
       relation =
-        if use_legacy_queries?
-          legacy_find_synced_wikis
+        if use_fdw_queries_for_selective_sync_enabled?
+          Geo::ProjectRegistrySyncedFinder.new(:wiki).execute
         else
-          fdw_find_synced_wikis
+          legacy_registry_finder.synced_wikis
         end
 
       relation.count
@@ -143,8 +145,15 @@ module Geo
 
     protected
 
-    def find_synced_repositories
-      Geo::ProjectRegistry.synced_repos
+    def use_fdw_queries_for_selective_sync_enabled?
+      strong_memoize(:use_fdw_queries_for_selective_sync) do
+        Gitlab::Geo::Fdw.enabled? &&
+          Feature.enabled?(:use_fdw_queries_for_selective_sync)
+      end
+    end
+
+    def legacy_registry_finder
+      Geo::LegacyProjectRegistryFinder.new(current_node: current_node)
     end
 
     def find_verified_repositories
@@ -195,11 +204,6 @@ module Geo
         .where(project_registry: { project_id: nil })
     end
     # rubocop: enable CodeReuse/ActiveRecord
-
-    # @return [ActiveRecord::Relation<Geo::ProjectRegistry>]
-    def fdw_find_synced_wikis
-      Geo::ProjectRegistry.synced_wikis
-    end
 
     # @return [ActiveRecord::Relation<Geo::Fdw::Project>]
     # rubocop: disable CodeReuse/ActiveRecord
@@ -290,37 +294,15 @@ module Geo
       ::Gitlab::SQL::Glob.q(value)
     end
 
-    # @return [ActiveRecord::Relation<Geo::ProjectRegistry>] list of synced projects
-    def legacy_find_synced_repositories
-      legacy_find_project_registries(Geo::ProjectRegistry.synced_repos)
-    end
-
-    # @return [ActiveRecord::Relation<Geo::ProjectRegistry>] list of synced projects
-    # rubocop: disable CodeReuse/ActiveRecord
-    def legacy_find_synced_wikis
-      legacy_inner_join_registry_ids(
-        current_node.projects,
-          Geo::ProjectRegistry.synced_wikis.pluck(:project_id),
-          Project
-      )
-    end
-    # rubocop: enable CodeReuse/ActiveRecord
-
     # @return [ActiveRecord::Relation<Geo::ProjectRegistry>] list of verified projects
     def legacy_find_verified_repositories
       legacy_find_project_registries(Geo::ProjectRegistry.verified_repos)
     end
 
     # @return [ActiveRecord::Relation<Geo::ProjectRegistry>] list of verified wikis
-    # rubocop: disable CodeReuse/ActiveRecord
     def legacy_find_verified_wikis
-      legacy_inner_join_registry_ids(
-        current_node.projects,
-          Geo::ProjectRegistry.verified_wikis.pluck(:project_id),
-          Project
-      )
+      legacy_find_project_registries(Geo::ProjectRegistry.verified_wikis)
     end
-    # rubocop: enable CodeReuse/ActiveRecord
 
     # @return [ActiveRecord::Relation<Project>] list of synced projects
     # rubocop: disable CodeReuse/ActiveRecord

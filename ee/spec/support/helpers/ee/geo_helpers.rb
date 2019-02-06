@@ -17,10 +17,5 @@ module EE
     def stub_fdw_disabled
       allow(::Gitlab::Geo::Fdw).to receive(:enabled?).and_return(false)
     end
-
-    def stub_fdw_current_geo_node(node)
-      allow(Geo::Fdw::GeoNode).to receive(:current_node)
-        .and_return(Geo::Fdw::GeoNode.find(node.id))
-    end
   end
 end

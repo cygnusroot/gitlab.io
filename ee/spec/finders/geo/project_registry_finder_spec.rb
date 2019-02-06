@@ -38,7 +38,6 @@ describe Geo::ProjectRegistryFinder, :geo do
       context 'with selective sync' do
         before do
           secondary.update!(selective_sync_type: 'namespaces', namespaces: [synced_group])
-          stub_fdw_current_geo_node(secondary) if Gitlab::Geo::Fdw.enabled?
         end
 
         it 'counts projects that has been synced' do
@@ -55,51 +54,37 @@ describe Geo::ProjectRegistryFinder, :geo do
     end
 
     describe '#count_synced_wikis' do
-      context 'with use_fdw_queries_for_selective_sync disabled' do
+      it 'counts wiki that have been synced' do
+        create(:geo_project_registry, :sync_failed)
+        create(:geo_project_registry, :synced, project: project_synced)
+        create(:geo_project_registry, :synced, :repository_dirty, project: project_repository_dirty)
+        create(:geo_project_registry, :synced, :wiki_dirty, project: project_wiki_dirty)
+
+        expect(subject.count_synced_wikis).to eq 2
+      end
+
+      it 'counts synced wikis with nil wiki_access_level (which means enabled wiki)' do
+        project_synced.project_feature.update!(wiki_access_level: nil)
+
+        create(:geo_project_registry, :synced, project: project_synced)
+
+        expect(subject.count_synced_wikis).to eq 1
+      end
+
+      context 'with selective sync' do
         before do
-          stub_feature_flags(use_fdw_queries_for_selective_sync: false)
+          secondary.update!(selective_sync_type: 'namespaces', namespaces: [synced_group])
         end
 
-        it 'counts wiki that have been synced' do
-          create(:geo_project_registry, :sync_failed)
-          create(:geo_project_registry, :synced, project: project_synced)
-          create(:geo_project_registry, :synced, :repository_dirty, project: project_repository_dirty)
-          create(:geo_project_registry, :synced, :wiki_dirty, project: project_wiki_dirty)
-
-          expect(subject.count_synced_wikis).to eq 2
-        end
-
-        it 'counts synced wikis with nil wiki_access_level (which means enabled wiki)' do
-          project_synced.project_feature.update!(wiki_access_level: nil)
+        it 'counts projects that has been synced' do
+          project_1_in_synced_group = create(:project, group: synced_group)
+          project_2_in_synced_group = create(:project, group: synced_group)
 
           create(:geo_project_registry, :synced, project: project_synced)
+          create(:geo_project_registry, :synced, project: project_1_in_synced_group)
+          create(:geo_project_registry, :sync_failed, project: project_2_in_synced_group)
 
           expect(subject.count_synced_wikis).to eq 1
-        end
-
-        context 'with selective sync' do
-          before do
-            secondary.update!(selective_sync_type: 'namespaces', namespaces: [synced_group])
-          end
-
-          it 'delegates to Geo::LegacyProjectRegistryFinder#synced_wikis' do
-            expect_next_instance_of(Geo::LegacyProjectRegistryFinder) do |finder|
-              allow(finder).to receive(:synced_wikis).and_call_original
-            end
-
-            subject.count_synced_wikis
-          end
-
-          it 'counts projects that has been synced' do
-            project_1_in_synced_group = create(:project, group: synced_group)
-            project_2_in_synced_group = create(:project, group: synced_group)
-
-            create(:geo_project_registry, :synced, project: project_synced)
-            create(:geo_project_registry, :synced, project: project_1_in_synced_group)
-            create(:geo_project_registry, :sync_failed, project: project_2_in_synced_group)
-
-            expect(subject.count_synced_wikis).to eq 1
-          end
         end
       end
     end
@@ -633,7 +618,6 @@ describe Geo::ProjectRegistryFinder, :geo do
     context 'with use_fdw_queries_for_selective_sync enabled' do
       before do
         stub_feature_flags(use_fdw_queries_for_selective_sync: true)
-        stub_fdw_current_geo_node(secondary)
       end
 
       include_examples 'counts all the things'

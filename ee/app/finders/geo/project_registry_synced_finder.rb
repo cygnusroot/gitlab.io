@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # Finder for retrieving project registries that have been synced
-# scoped to a type (repository or wiki).
+# scoped to a type (repository or wiki) using FDW queries.
 #
 # Basic usage:
 #
-#     Geo::ProjectRegistrySyncedFinder.new(:repository).execute
+#     Geo::ProjectRegistrySyncedFinder.new(current_node: Gitlab::Geo.current_node, :repository).execute
 #
 # Valid `type` values are:
 #
@@ -15,9 +15,10 @@
 # Any other value will be ignored.
 module Geo
   class ProjectRegistrySyncedFinder
-    attr_reader :type
+    attr_reader :current_node, :type
 
-    def initialize(type)
+    def initialize(current_node:, type:)
+      @current_node = Geo::Fdw::GeoNode.find(current_node.id)
       @type = type.to_sym
     end
 
@@ -30,12 +31,6 @@ module Geo
       else
         Geo::ProjectRegistry.none
       end
-    end
-
-    private
-
-    def current_node
-      Geo::Fdw::GeoNode.current_node
     end
   end
 end

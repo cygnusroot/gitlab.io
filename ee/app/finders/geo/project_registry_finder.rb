@@ -9,25 +9,11 @@ module Geo
     end
 
     def count_synced_repositories
-      relation =
-        if use_fdw_queries_for_selective_sync_enabled?
-          Geo::ProjectRegistrySyncedFinder.new(:repository).execute
-        else
-          legacy_registry_finder.synced_repositories
-        end
-
-      relation.count
+      registries_for_synced_projects(:repository).count
     end
 
     def count_synced_wikis
-      relation =
-        if use_fdw_queries_for_selective_sync_enabled?
-          Geo::ProjectRegistrySyncedFinder.new(:wiki).execute
-        else
-          legacy_registry_finder.synced_wikis
-        end
-
-      relation.count
+      registries_for_synced_projects(:wiki).count
     end
 
     def count_failed_repositories
@@ -152,8 +138,18 @@ module Geo
       end
     end
 
-    def legacy_registry_finder
-      Geo::LegacyProjectRegistryFinder.new(current_node: current_node)
+    def finder_klass_for_synced_registries
+      if use_fdw_queries_for_selective_sync_enabled?
+        Geo::ProjectRegistrySyncedFinder
+      else
+        Geo::LegacyProjectRegistrySyncedFinder
+      end
+    end
+
+    def registries_for_synced_projects(type)
+      finder_klass_for_synced_registries
+        .new(current_node: current_node, type: type)
+        .execute
     end
 
     def find_verified_repositories

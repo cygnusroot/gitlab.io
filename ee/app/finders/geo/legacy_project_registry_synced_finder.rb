@@ -23,9 +23,9 @@ module Geo
 
     def execute
       if selective_sync?
-        legacy_registries_for_synced_projects
+        synced_registries_for_selective_sync
       else
-        registries_for_synced_projects
+        synced_registries
       end
     end
 
@@ -33,21 +33,14 @@ module Geo
 
     attr_reader :type
 
-    def registries_for_synced_projects
-      case type
-      when :repository
-        Geo::ProjectRegistry.synced_repos
-      when :wiki
-        Geo::ProjectRegistry.synced_wikis
-      else
-        Geo::ProjectRegistry.none
-      end
+    def synced_registries
+      Geo::ProjectRegistry.synced(type)
     end
 
     # rubocop: disable CodeReuse/ActiveRecord
-    def legacy_registries_for_synced_projects
+    def synced_registries_for_selective_sync
       legacy_inner_join_registry_ids(
-        registries_for_synced_projects,
+        synced_registries,
         current_node.projects.pluck(:id),
         Geo::ProjectRegistry,
         foreign_key: :project_id

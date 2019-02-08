@@ -26,6 +26,7 @@ module EE
         mount ::API::NpmPackages
         mount ::API::Packages
         mount ::API::PackageFiles
+        mount ::API::Scim
       end
     end
   end

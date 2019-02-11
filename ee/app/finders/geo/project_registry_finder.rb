@@ -2,8 +2,6 @@
 
 module Geo
   class ProjectRegistryFinder < RegistryFinder
-    include Gitlab::Utils::StrongMemoize
-
     def count_projects
       current_node.projects.count
     end
@@ -131,15 +129,8 @@ module Geo
 
     protected
 
-    def use_fdw_queries_for_selective_sync_enabled?
-      strong_memoize(:use_fdw_queries_for_selective_sync) do
-        Gitlab::Geo::Fdw.enabled? &&
-          Feature.enabled?(:use_fdw_queries_for_selective_sync)
-      end
-    end
-
     def finder_klass_for_synced_registries
-      if use_fdw_queries_for_selective_sync_enabled?
+      if Gitlab::Geo::Fdw.enabled_for_selective_sync?
         Geo::ProjectRegistrySyncedFinder
       else
         Geo::LegacyProjectRegistrySyncedFinder

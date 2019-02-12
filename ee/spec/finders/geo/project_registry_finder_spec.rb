@@ -577,6 +577,7 @@ describe Geo::ProjectRegistryFinder, :geo do
       end
 
       include_examples 'counts all the things', 'fdw'
+      include_examples 'finds all the things', 'fdw'
     end
 
     context 'with use_fdw_queries_for_selective_sync enabled' do
@@ -585,9 +586,8 @@ describe Geo::ProjectRegistryFinder, :geo do
       end
 
       include_examples 'counts all the things', 'fdw'
+      include_examples 'finds all the things', 'fdw'
     end
-
-    include_examples 'finds all the things', 'fdw'
   end
 
   context 'Legacy' do

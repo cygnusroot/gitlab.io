@@ -139,8 +139,16 @@ module Geo
         .execute
     end
 
+    def finder_klass_for_failed_registries
+      if Gitlab::Geo::Fdw.enabled_for_selective_sync?
+        Geo::ProjectRegistrySyncFailedFinder
+      else
+        Geo::LegacyProjectRegistrySyncFailedFinder
+      end
+    end
+
     def registries_for_failed_projects(type)
-      Geo::LegacyProjectRegistrySyncFailedFinder
+      finder_klass_for_failed_registries
         .new(current_node: current_node, type: type)
         .execute
     end

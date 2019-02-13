@@ -18,7 +18,8 @@ class GeoNode < ActiveRecord::Base
                  primary: false
 
   validates :url, presence: true, uniqueness: { case_sensitive: false }
-  validate :check_url_is_valid
+  validate :url_is_http
+  validate :alternate_url_is_http
 
   validates :primary, uniqueness: { message: 'node already exists' }, if: :primary
   validates :enabled, if: :primary, acceptance: { message: 'Geo primary node cannot be disabled' }
@@ -121,22 +122,31 @@ class GeoNode < ActiveRecord::Base
   end
 
   def url
-    value = read_attribute(:url)
-    value += '/' if value.present? && !value.end_with?('/')
-
-    value
+    read_with_ending_slash(:url)
   end
 
   def url=(value)
-    value += '/' if value.present? && !value.end_with?('/')
-
-    write_attribute(:url, value)
+    write_with_ending_slash(:url, value)
 
     @uri = nil
   end
 
+  def alternate_url
+    read_with_ending_slash(:alternate_url)
+  end
+
+  def alternate_url=(value)
+    write_with_ending_slash(:alternate_url, value)
+
+    @alternate_uri = nil
+  end
+
   def uri
     @uri ||= URI.parse(url) if url.present?
+  end
+
+  def alternate_uri
+    @alternate_uri ||= URI.parse(alternate_url) if alternate_url.present?
   end
 
   def geo_transfers_url(file_type, file_id)
@@ -276,12 +286,20 @@ class GeoNode < ActiveRecord::Base
     end
   end
 
-  def check_url_is_valid
-    if uri.present? && !%w[http https].include?(uri.scheme)
-      errors.add(:url, 'scheme must be http or https')
+  def url_is_http
+    url_is_http_for(:url, uri)
+  end
+
+  def alternate_url_is_http
+    url_is_http_for(:alternate_url, alternate_uri)
+  end
+
+  def url_is_http_for(attribute, uri_value)
+    if uri_value.present? && !%w[http https].include?(uri_value.scheme)
+      errors.add(attribute, 'scheme must be http or https')
     end
   rescue URI::InvalidURIError
-    errors.add(:url, 'is invalid')
+    errors.add(attribute, 'is invalid')
   end
 
   def update_clone_url
@@ -296,5 +314,18 @@ class GeoNode < ActiveRecord::Base
 
   def expire_cache!
     Gitlab::Geo.expire_cache!
+  end
+
+  def read_with_ending_slash(attribute)
+    value = read_attribute(attribute)
+    value += '/' if value.present? && !value.end_with?('/')
+
+    value
+  end
+
+  def write_with_ending_slash(attribute, value)
+    value += '/' if value.present? && !value.end_with?('/')
+
+    write_attribute(attribute, value)
   end
 end

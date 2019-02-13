@@ -124,6 +124,7 @@ describe 'admin Geo Nodes', :js do
 
     it 'updates an existing Geo Node' do
       fill_in 'URL', with: 'http://newsite.com'
+      fill_in 'Alternate URL', with: 'http://someloadbalancer.com'
       check 'This is a primary node'
       click_button 'Save changes'
 

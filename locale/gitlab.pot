@@ -10260,6 +10260,9 @@ msgstr ""
 msgid "To start serving your jobs you can either add specific Runners to your project or use shared Runners"
 msgstr ""
 
+msgid "To support OAuth logins to this node at a different domain than URL"
+msgstr ""
+
 msgid "To this GitLab instance"
 msgstr ""
 

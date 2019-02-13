@@ -4,13 +4,14 @@ describe GeoNode, type: :model do
   using RSpec::Parameterized::TableSyntax
   include ::EE::GeoHelpers
 
-  let(:new_node) { create(:geo_node, url: 'https://localhost:3000/gitlab') }
-  let(:new_primary_node) { create(:geo_node, :primary, url: 'https://localhost:3000/gitlab') }
+  let(:dummy_url) { 'https://localhost:3000/gitlab' }
+  let(:new_node_attrs) { { url: dummy_url } }
+  let(:new_node) { create(:geo_node, new_node_attrs) }
+  let(:new_primary_node) { create(:geo_node, :primary, new_node_attrs) }
   let(:empty_node) { described_class.new }
   let(:primary_node) { create(:geo_node, :primary) }
   let(:node) { create(:geo_node) }
 
-  let(:dummy_url) { 'https://localhost:3000/gitlab' }
   let(:url_helpers) { Gitlab::Routing.url_helpers }
   let(:api_version) { API::API.version }
 
@@ -34,6 +35,50 @@ describe GeoNode, type: :model do
 
         expect(primary_node).not_to be_valid
         expect(primary_node.errors).to include(:enabled)
+      end
+    end
+
+    context 'url' do
+      subject { build(:geo_node, url: url) }
+
+      context 'when url is http' do
+        let(:url) { 'http://foo' }
+
+        it { is_expected.to be_valid }
+      end
+
+      context 'when url is https' do
+        let(:url) { 'https://foo' }
+
+        it { is_expected.to be_valid }
+      end
+
+      context 'when url is not http or https' do
+        let(:url) { 'nothttp://foo' }
+
+        it { is_expected.not_to be_valid }
+      end
+    end
+
+    context 'alternate_url' do
+      subject { build(:geo_node, alternate_url: alternate_url) }
+
+      context 'when alternate_url is http' do
+        let(:alternate_url) { 'http://foo' }
+
+        it { is_expected.to be_valid }
+      end
+
+      context 'when alternate_url is https' do
+        let(:alternate_url) { 'https://foo' }
+
+        it { is_expected.to be_valid }
+      end
+
+      context 'when alternate_url is not http or https' do
+        let(:alternate_url) { 'nothttp://foo' }
+
+        it { is_expected.not_to be_valid }
       end
     end
   end
@@ -245,18 +290,13 @@ describe GeoNode, type: :model do
       stub_config_setting(port: 443)
       stub_config_setting(protocol: 'https')
       stub_config_setting(relative_url_root: '/gitlab')
-      node = GeoNode.new
 
-      expect(node.url).to eq('https://localhost/gitlab/')
+      expect(empty_node.url).to eq('https://localhost/gitlab/')
     end
   end
 
   describe '#url=' do
-    subject { GeoNode.new }
-
-    before do
-      subject.url = dummy_url
-    end
+    subject { new_node }
 
     it 'sets schema field based on url' do
       expect(subject.uri.scheme).to eq('https')
@@ -284,6 +324,78 @@ describe GeoNode, type: :model do
         subject.url = dummy_https
 
         expect(subject.uri.port).to eq(443)
+      end
+    end
+  end
+
+  describe '#alternate_uri' do
+    let(:alternate_url) { 'https://foo:3003/bar' }
+    let(:node) { create(:geo_node, url: 'https://localhost:3000/gitlab', alternate_url: alternate_url) }
+
+    context 'when all fields are filled' do
+      it 'returns an URI object' do
+        expect(node.alternate_uri).to be_a URI
+      end
+
+      it 'includes schema, host, port and relative_url_root with a terminating /' do
+        expected_uri = URI.parse(alternate_url)
+        expected_uri.path += '/'
+        expect(node.alternate_uri).to eq(expected_uri)
+      end
+    end
+  end
+
+  describe '#alternate_url' do
+    let(:alternate_url) { 'https://foo:3003/bar' }
+    let(:node) { create(:geo_node, url: 'https://localhost:3000/gitlab', alternate_url: alternate_url) }
+
+    it 'returns a string' do
+      expect(node.alternate_url).to be_a String
+    end
+
+    it 'includes schema home port and relative_url with a terminating /' do
+      expected_url = alternate_url + '/'
+      expect(node.alternate_url).to eq(expected_url)
+    end
+
+    it 'can be nil' do
+      stub_config_setting(port: 443)
+      stub_config_setting(protocol: 'https')
+      stub_config_setting(relative_url_root: '/gitlab')
+
+      expect(empty_node.alternate_url).to be_nil
+    end
+  end
+
+  describe '#alternate_url=' do
+    subject { GeoNode.new(alternate_url: 'https://foo:3003/bar') }
+
+    it 'sets schema field based on url' do
+      expect(subject.alternate_uri.scheme).to eq('https')
+    end
+
+    it 'sets host field based on url' do
+      expect(subject.alternate_uri.host).to eq('foo')
+    end
+
+    it 'sets port field based on specified by url' do
+      expect(subject.alternate_uri.port).to eq(3003)
+    end
+
+    context 'when unspecified ports' do
+      let(:dummy_http) { 'http://example.com/' }
+      let(:dummy_https) { 'https://example.com/' }
+
+      it 'sets port 80 when http and no port is specified' do
+        subject.alternate_url = dummy_http
+
+        expect(subject.alternate_uri.port).to eq(80)
+      end
+
+      it 'sets port 443 when https and no port is specified' do
+        subject.alternate_url = dummy_https
+
+        expect(subject.alternate_uri.port).to eq(443)
       end
     end
   end

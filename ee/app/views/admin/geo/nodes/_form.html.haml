@@ -5,6 +5,15 @@
   .col-sm-10
     = form.text_field :url, class: 'form-control'
 
+.js-hide-if-geo-primary{ class: ('hidden' unless geo_node.secondary?) }
+  .form-group.row
+    .col-sm-2
+      = form.label :alternate_url, 'Alternate URL', class: 'col-form-label'
+    .col-sm-10
+      = form.text_field :alternate_url, class: 'form-control'
+      .form-text.text-muted
+        #{ s_("To support OAuth logins to this node at a different domain than URL") }
+
 .form-group.row
   .offset-sm-2.col-sm-10
     .form-check

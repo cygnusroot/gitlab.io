@@ -133,6 +133,7 @@ describe 'admin Geo Nodes', :js do
 
       page.within(find('.geo-node-item', match: :first)) do
         expect(page).to have_content('http://newsite.com')
+        expect(page).to have_content('http://someloadbalancer.com')
         expect(page).to have_content('Primary')
       end
     end

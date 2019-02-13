@@ -31,6 +31,7 @@ Example response:
   {
     "id": 2,
     "url": "https://secondary.example.com/",
+    "alternate_url": "https://alternate.example.com/",
     "primary": false,
     "enabled": true,
     "current": false,

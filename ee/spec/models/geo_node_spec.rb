@@ -107,18 +107,82 @@ describe GeoNode, type: :model do
   end
 
   context 'dependent models and attributes for GeoNode' do
-    context 'on create' do
-      it 'saves a corresponding oauth application if it is a secondary node' do
-        expect(node.oauth_application).to be_persisted
-      end
-
-      context 'when is a primary node' do
-        it 'has no oauth_application' do
-          expect(primary_node.oauth_application).not_to be_present
+    context 'on validation (and therefore on save)' do
+      context 'when it is a secondary node' do
+        before do
+          node
         end
 
-        it 'persists current clone_url_prefix' do
-          expect(primary_node.clone_url_prefix).to eq(Gitlab.config.gitlab_shell.ssh_path_prefix)
+        context 'when the oauth_application is missing' do
+          before do
+            node.oauth_application.destroy
+            node.oauth_application = nil
+          end
+
+          it 'builds an oauth_application' do
+            expect(node.valid?).to be_truthy
+
+            expect(node.oauth_application).to be
+            expect(node.oauth_application.redirect_uri).to be_present
+          end
+        end
+
+        context 'when the oauth_application redirect_uri does not contain oauth_callback_url' do
+          it 'ensures oauth_callback_url is included' do
+            node.oauth_application.redirect_uri = 'http://wrong-callback-url'
+            node.oauth_application.save!
+
+            expect(node.valid?).to be_truthy
+
+            expect(node.oauth_application.redirect_uri.split).to include(node.oauth_callback_url)
+          end
+        end
+      end
+
+      context 'when it is a primary node' do
+        before do
+          primary_node
+        end
+
+        context 'when it does not have an oauth_application' do
+          it 'does not create an oauth_application' do
+            primary_node.oauth_application = nil
+
+            expect(primary_node.valid?).to be_truthy
+
+            expect(primary_node.oauth_application).to be_nil
+          end
+        end
+
+        context 'when it does not have an oauth_application' do
+          # TODO Should it instead be destroyed?
+          it 'disassociates the oauth_application' do
+            primary_node.oauth_application = create(:oauth_application)
+
+            expect(primary_node.valid?).to be_truthy
+
+            expect(primary_node.oauth_application).to be_nil
+          end
+        end
+
+        context 'when clone_url_prefix is nil' do
+          it 'sets current clone_url_prefix' do
+            primary_node.clone_url_prefix = nil
+
+            expect(primary_node.valid?).to be_truthy
+
+            expect(primary_node.clone_url_prefix).to eq(Gitlab.config.gitlab_shell.ssh_path_prefix)
+          end
+        end
+
+        context 'when clone_url_prefix has changed' do
+          it 'sets current clone_url_prefix' do
+            primary_node.clone_url_prefix = 'foo'
+
+            expect(primary_node.valid?).to be_truthy
+
+            expect(primary_node.clone_url_prefix).to eq(Gitlab.config.gitlab_shell.ssh_path_prefix)
+          end
         end
       end
     end

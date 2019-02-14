@@ -127,14 +127,23 @@ describe GeoNode, type: :model do
           end
         end
 
-        context 'when the oauth_application redirect_uri does not contain oauth_callback_url' do
-          it 'ensures oauth_callback_url is included' do
-            node.oauth_application.redirect_uri = 'http://wrong-callback-url'
-            node.oauth_application.save!
+        it 'overwrites redirect_uri' do
+          node.oauth_application.redirect_uri = 'http://wrong-callback-url'
+          node.oauth_application.save!
+
+          expect(node.valid?).to be_truthy
+
+          expect(node.oauth_application.redirect_uri).to eq(node.oauth_callback_url)
+        end
+
+        context 'when the node has an alternate_url' do
+          it 'adds an alternate callback URL' do
+            node.alternate_url = 'http://alternate-url.com:1234/gitlab/'
 
             expect(node.valid?).to be_truthy
 
-            expect(node.oauth_application.redirect_uri.split).to include(node.oauth_callback_url)
+            expected = [node.oauth_callback_url, node.alternate_oauth_callback_url].join("\n")
+            expect(node.oauth_application.redirect_uri).to eq(expected)
           end
         end
       end
@@ -515,6 +524,20 @@ describe GeoNode, type: :model do
     it 'returns url that matches rails url_helpers generated one' do
       route = url_helpers.oauth_geo_callback_url(protocol: 'https:', host: 'localhost', port: 3000, script_name: '/gitlab')
       expect(new_node.oauth_callback_url).to eq(route)
+    end
+  end
+
+  describe '#alternate_oauth_callback_url' do
+    let(:node) { create(:geo_node, url: 'https://localhost:3000/gitlab', alternate_url: 'https://alternate:4444/gitlabalternate') }
+    let(:alternate_oauth_callback_url) { 'https://alternate:4444/gitlabalternate/oauth/geo/callback' }
+
+    it 'returns oauth callback url based on node uri' do
+      expect(node.alternate_oauth_callback_url).to eq(alternate_oauth_callback_url)
+    end
+
+    it 'returns url that matches rails url_helpers generated one' do
+      route = url_helpers.oauth_geo_callback_url(protocol: 'https:', host: 'alternate', port: 4444, script_name: '/gitlabalternate')
+      expect(node.alternate_oauth_callback_url).to eq(route)
     end
   end
 

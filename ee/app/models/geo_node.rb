@@ -168,6 +168,12 @@ class GeoNode < ActiveRecord::Base
     Gitlab::Routing.url_helpers.oauth_geo_callback_url(url_helper_args)
   end
 
+  def alternate_oauth_callback_url
+    return nil unless alternate_url.present?
+
+    Gitlab::Routing.url_helpers.oauth_geo_callback_url(alternate_url_helper_args)
+  end
+
   def oauth_logout_url(state)
     Gitlab::Routing.url_helpers.oauth_geo_logout_url(url_helper_args.merge(state: state))
   end
@@ -267,7 +273,15 @@ class GeoNode < ActiveRecord::Base
   end
 
   def url_helper_args
-    { protocol: uri.scheme, host: uri.host, port: uri.port, script_name: uri.path }
+    url_helper_options(uri)
+  end
+
+  def alternate_url_helper_args
+    url_helper_options(alternate_uri)
+  end
+
+  def url_helper_options(given_uri)
+    { protocol: given_uri.scheme, host: given_uri.host, port: given_uri.port, script_name: given_uri.path }
   end
 
   def update_dependents_attributes
@@ -309,7 +323,7 @@ class GeoNode < ActiveRecord::Base
   def update_oauth_application!
     self.build_oauth_application if oauth_application.nil?
     self.oauth_application.name = "Geo node: #{self.url}"
-    self.oauth_application.redirect_uri = oauth_callback_url
+    self.oauth_application.redirect_uri = [oauth_callback_url, alternate_oauth_callback_url].compact.join("\n")
   end
 
   def expire_cache!

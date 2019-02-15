@@ -84,6 +84,7 @@ PUT /geo_nodes/:id
 | `id`                 | integer | yes       | The ID of the Geo node.                                                   |
 | `enabled`            | boolean | no        | Flag indicating if the Geo node is enabled.                               |
 | `url`                | string  | no        | The URL to connect to the Geo node.                                       |
+| `alternate_url`      | string  | no        | An alternate URL to allow OAuth logins to this secondary node.            |
 | `files_max_capacity` | integer | no        | Control the maximum concurrency of LFS/attachment backfill for this secondary node. |
 | `repos_max_capacity` | integer | no        | Control the maximum concurrency of repository backfill for this secondary node.     |
 | `verification_max_capacity` | integer | no | Control the maximum concurrency of verification for this node. |
@@ -94,6 +95,7 @@ Example response:
 {
   "id": 1,
   "url": "https://secondary.example.com/",
+  "alternate_url": "https://alternate.example.com/",
   "primary": false,
   "enabled": true,
   "current": true,

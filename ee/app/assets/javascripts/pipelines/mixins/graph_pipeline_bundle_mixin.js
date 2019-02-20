@@ -3,6 +3,22 @@ import { __ } from '~/locale';
 
 export default {
   methods: {
+    requestExpandedPipelines(pipeline) {
+      this.mediator.store.toggleLoading(pipeline);
+      this.mediator.poll.stop();
+    },
+    getExpandedPipelines(pipeline) {
+      this.mediator.service
+        .getPipeline(this.mediator.getExpandedParameters())
+        .then(response => {
+          this.mediator.store.toggleLoading(pipeline);
+          this.mediator.store.storePipeline(response.data);
+          this.mediator.poll.restart({ data: this.mediator.getExpandedParameters() });
+        })
+        .catch(() => {
+          flash(__('An error occurred while fetching the pipeline.'));
+        });
+    },
     /**
      * Called when a linked pipeline is clicked.
      *
@@ -17,8 +33,22 @@ export default {
     clickPipeline(parentPipeline, pipeline, openMethod, closeMethod) {
       if (!pipeline.isExpanded) {
         this.mediator.store[openMethod](parentPipeline, pipeline);
+
+        this.requestExpandedPipelines(pipeline);
+
+        // update the request data with the clicked pipeline
+        this.mediator.store.addExpandedPipelineToRequestData(pipeline.id);
+
+        this.getExpandedPipelines(pipeline);
       } else {
         this.mediator.store[closeMethod](pipeline);
+
+        this.requestExpandedPipelines(pipeline);
+
+        // remove the expanded pipeline
+        this.mediator.store.removeExpandedPipelineToRequestData(pipeline.id);
+
+        this.getExpandedPipelines(pipeline);
       }
     },
     clickTriggeredByPipeline(parentPipeline, pipeline) {

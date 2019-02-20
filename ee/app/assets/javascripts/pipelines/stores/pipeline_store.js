@@ -6,6 +6,11 @@ import CePipelineStore from '~/pipelines/stores/pipeline_store';
  * Extends CE store with the logic to handle the upstream/downstream pipelines
  */
 export default class PipelineStore extends CePipelineStore {
+  constructor() {
+    super();
+
+    this.state.expandedPipelines = [];
+  }
   /**
    * For the triggered pipelines adds the `isExpanded` key
    *
@@ -41,6 +46,8 @@ export default class PipelineStore extends CePipelineStore {
   parseTriggeredByPipelines(pipeline) {
     // keep old value in case it's opened because we're polling
     Vue.set(pipeline, 'isExpanded', pipeline.isExpanded || false);
+    // add isLoading property
+    Vue.set(pipeline, 'isLoading', false);
 
     if (pipeline.triggered_by) {
       if (!_.isArray(pipeline.triggered_by)) {
@@ -58,6 +65,9 @@ export default class PipelineStore extends CePipelineStore {
   parseTriggeredPipelines(pipeline) {
     // keep old value in case it's opened because we're polling
     Vue.set(pipeline, 'isExpanded', pipeline.isExpanded || false);
+
+    // add isLoading property
+    Vue.set(pipeline, 'isLoading', false);
 
     if (pipeline.triggered && pipeline.triggered.length > 0) {
       pipeline.triggered.forEach(el => this.parseTriggeredPipelines(el));
@@ -107,7 +117,7 @@ export default class PipelineStore extends CePipelineStore {
    * @param {Object} pipeline
    */
   resetTriggeredPipelines(parentPipeline, pipeline) {
-    parentPipeline.triggered.forEach(el => this.closePipeline(el));
+    parentPipeline.triggered.forEach(el => PipelineStore.closePipeline(el));
 
     if (pipeline.triggered && pipeline.triggered.length) {
       pipeline.triggered.forEach(el => this.resetTriggeredPipelines(pipeline, el));
@@ -150,5 +160,17 @@ export default class PipelineStore extends CePipelineStore {
    */
   static openPipeline(pipeline) {
     Vue.set(pipeline, 'isExpanded', true);
+  }
+  // eslint-disable-next-line class-methods-use-this
+  toggleLoading(pipeline) {
+    Vue.set(pipeline, 'isLoading', !pipeline.isLoading);
+  }
+
+  addExpandedPipelineToRequestData(id) {
+    this.state.expandedPipelines.push(id);
+  }
+
+  removeExpandedPipelineToRequestData(id) {
+    this.state.expandedPipelines.splice(this.state.expandedPipelines.findIndex(el => el === id), 1);
   }
 }

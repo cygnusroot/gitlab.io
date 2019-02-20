@@ -124,6 +124,7 @@ describe 'admin Geo Nodes', :js do
 
     it 'updates an existing Geo Node' do
       fill_in 'URL', with: 'http://newsite.com'
+      fill_in 'Sync URL', with: 'http://sync-url.com'
       check 'This is a primary node'
       click_button 'Save changes'
 
@@ -132,6 +133,7 @@ describe 'admin Geo Nodes', :js do
 
       page.within(find('.geo-node-item', match: :first)) do
         expect(page).to have_content('http://newsite.com')
+        expect(page).to have_content('http://sync-url.com')
         expect(page).to have_content('Primary')
       end
     end

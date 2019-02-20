@@ -9,8 +9,17 @@
     = form.text_field :alternate_url, class: 'form-control'
     .form-text.text-muted= s_('Geo|To support OAuth logins to this node at a different domain than URL')
 
+  .form-group.col-sm-6.js-hide-if-geo-primary{ class: ('hidden' unless geo_node.primary?) }
+    = form.label :sync_url, s_('Geo|Synchronisation URL'), class: 'font-weight-bold'
+    = form.text_field :sync_url, class: 'form-control'
+    .form-text.text-muted
+      #{ _("To use other URL to reach this primary node from secondaries") }
+
+
 .form-row.form-group
   .col-sm-12
+.form-group.row
+  .offset-sm-2.col-sm-10
     .form-check
       = form.check_box :primary, class: 'form-check-input'
       = form.label :primary, class: 'form-check-label' do

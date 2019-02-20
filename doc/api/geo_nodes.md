@@ -20,6 +20,7 @@ Example response:
   {
     "id": 1,
     "url": "https://primary.example.com/",
+    "sync_url": "https://sync.example.com/",
     "primary": true,
     "enabled": true,
     "current": true,
@@ -85,6 +86,7 @@ PUT /geo_nodes/:id
 | `enabled`            | boolean | no        | Flag indicating if the Geo node is enabled.                               |
 | `url`                | string  | no        | The URL to connect to the Geo node.                                       |
 | `alternate_url`      | string  | no        | An alternate URL to allow OAuth logins to this secondary node.            |
+| `sync_url`           | string  | no        | A sync URL to use by secondaries to reach a primary.                      |
 | `files_max_capacity` | integer | no        | Control the maximum concurrency of LFS/attachment backfill for this secondary node. |
 | `repos_max_capacity` | integer | no        | Control the maximum concurrency of repository backfill for this secondary node.     |
 | `verification_max_capacity` | integer | no | Control the maximum concurrency of verification for this node. |
@@ -96,6 +98,7 @@ Example response:
   "id": 1,
   "url": "https://secondary.example.com/",
   "alternate_url": "https://alternate.example.com/",
+  "sync_url": null,
   "primary": false,
   "enabled": true,
   "current": true,
@@ -137,6 +140,7 @@ Example response:
 {
   "id": 1,
   "url": "https://primary.example.com/",
+  "sync_url": null,
   "primary": true,
   "enabled": true,
   "current": true,

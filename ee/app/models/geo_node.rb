@@ -20,6 +20,7 @@ class GeoNode < ActiveRecord::Base
   validates :url, presence: true, uniqueness: { case_sensitive: false }
   validate :url_is_http
   validate :alternate_url_is_http
+  validate :sync_url_is_http
 
   validates :primary, uniqueness: { message: 'node already exists' }, if: :primary
   validates :enabled, if: :primary, acceptance: { message: 'Geo primary node cannot be disabled' }
@@ -141,12 +142,26 @@ class GeoNode < ActiveRecord::Base
     @alternate_uri = nil
   end
 
+  def sync_url
+    read_with_ending_slash(:sync_url).presence || read_with_ending_slash(:url)
+  end
+
+  def sync_url=(value)
+    write_with_ending_slash(:sync_url, value)
+
+    @sync_uri = nil
+  end
+
   def uri
     @uri ||= URI.parse(url) if url.present?
   end
 
   def alternate_uri
     @alternate_uri ||= URI.parse(alternate_url) if alternate_url.present?
+  end
+
+  def sync_uri
+    @sync_uri ||= URI.parse(sync_url) if sync_url.present?
   end
 
   def geo_transfers_url(file_type, file_id)
@@ -260,7 +275,7 @@ class GeoNode < ActiveRecord::Base
   end
 
   def api_url(suffix)
-    Gitlab::Utils.append_path(uri.to_s, "api/#{API::API.version}/#{suffix}")
+    Gitlab::Utils.append_path(sync_uri.to_s, "api/#{API::API.version}/#{suffix}")
   end
 
   def ensure_access_keys!
@@ -306,6 +321,10 @@ class GeoNode < ActiveRecord::Base
 
   def alternate_url_is_http
     url_is_http_for(:alternate_url, alternate_uri)
+  end
+
+  def sync_url_is_http
+    url_is_http_for(:sync_url, sync_uri)
   end
 
   def url_is_http_for(attribute, uri_value)

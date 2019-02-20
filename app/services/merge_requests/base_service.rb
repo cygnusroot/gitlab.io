@@ -65,12 +65,39 @@ module MergeRequests
       return if merge_request.merge_request_pipeline_exists?
       return if merge_request.has_no_commits?
 
+      if can_create_merge_pipeline?(merge_request)
+        ret = MergeRequests::MergeToRefService.new(project, user).execute(merge_request)
+
+        if ret[:result] == :success
+          create_merge_pipeline(merge_request, user, ret[:commit_id])
+        else
+          create_detached_merge_request_pipeline(merge_request, user)
+        end
+      else
+        create_detached_merge_request_pipeline(merge_request, user)
+      end
+    end
+
+    def create_detached_merge_request_pipeline(merge_request, user)
       Ci::CreatePipelineService
-        .new(merge_request.source_project, user, ref: merge_request.source_branch)
-        .execute(:merge_request,
-                 ignore_skip_ci: true,
-                 save_on_errors: false,
-                 merge_request: merge_request)
+        .new(merge_request.source_project, user,
+          ref: merge_request.ref_path,
+          checkout_sha: merge_request.source_branch_sha)
+        .execute(:merge_request, merge_request: merge_request)
+    end
+
+    def create_merge_pipeline(merge_request, user, merge_sha)
+      Ci::CreatePipelineService
+        .new(merge_request.source_project, user,
+          ref: merge_request.merge_ref_path,
+          checkout_sha: merge_sha,
+          target_sha: merge_request.target_branch_sha,
+          source_sha: merge_request.source_branch_sha)
+        .execute(:merge_request, merge_request: merge_request)
+    end
+
+    def can_create_merge_pipeline?(merge_request)
+      !merge_request.work_in_progress? && project.merge_pipelines_enabled?
     end
 
     # Returns all origin and fork merge requests from `@project` satisfying passed arguments.

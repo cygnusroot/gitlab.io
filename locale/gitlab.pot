@@ -1131,6 +1131,9 @@ msgstr ""
 msgid "Are you sure you want to reset registration token?"
 msgstr ""
 
+msgid "Are you sure you want to reset the SCIM token? SCIM provisioning will stop working until the new token is updated."
+msgstr ""
+
 msgid "Are you sure you want to reset the health check token?"
 msgstr ""
 
@@ -4425,6 +4428,12 @@ msgstr ""
 msgid "General pipelines"
 msgstr ""
 
+msgid "Generate a SCIM token"
+msgstr ""
+
+msgid "Generate a SCIM token to set up your Syetem for Cross-Domain Identity Management."
+msgstr ""
+
 msgid "Generate a default set of labels"
 msgstr ""
 
@@ -5952,6 +5961,9 @@ msgid "MRApprovals|Pending approvals"
 msgstr ""
 
 msgid "Make everyone on your team more productive regardless of their location. GitLab Geo creates read-only mirrors of your GitLab instance so you can reduce the time it takes to clone and fetch large repos."
+msgstr ""
+
+msgid "Make sure you save it - you won't be able to access it again."
 msgstr ""
 
 msgid "Make sure you're logged into the account that owns the projects you'd like to import."
@@ -8408,6 +8420,12 @@ msgstr ""
 msgid "SAML for %{group_name}"
 msgstr ""
 
+msgid "SCIM API endpoint URL"
+msgstr ""
+
+msgid "SCIM Token"
+msgstr ""
+
 msgid "SHA1 fingerprint of the SAML token signing certificate. Get this from your identity provider, where it can also be called \"Thumbprint\"."
 msgstr ""
 
@@ -9635,6 +9653,9 @@ msgid "The Issue Tracker is the place to add things that need to be improved or 
 msgstr ""
 
 msgid "The Issue Tracker is the place to add things that need to be improved or solved in a project. You can register or sign in to create issues for this project."
+msgstr ""
+
+msgid "The SCIM token is now hidden. To see the value of the token again, you need to "
 msgstr ""
 
 msgid "The X509 Certificate to use when mutual TLS is required to communicate with the external authorization service. If left blank, the server certificate is still validated when accessing over HTTPS."
@@ -11285,6 +11306,9 @@ msgstr ""
 msgid "Your Projects' Activity"
 msgstr ""
 
+msgid "Your SCIM token"
+msgstr ""
+
 msgid "Your Todos"
 msgstr ""
 
@@ -11325,6 +11349,9 @@ msgid "Your issues will be imported in the background. Once finished, you'll get
 msgstr ""
 
 msgid "Your name"
+msgstr ""
+
+msgid "Your new SCIM token"
 msgstr ""
 
 msgid "Your project limit is %{limit} projects! Please contact your administrator to increase it"
@@ -12076,6 +12103,9 @@ msgid "reply"
 msgid_plural "replies"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "reset it."
+msgstr ""
 
 msgid "score"
 msgstr ""

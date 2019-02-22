@@ -11,3 +11,10 @@
   .col-lg-9
     = render 'info'
     = render 'form', group: @group, saml_provider: @saml_provider
+- if Feature.enabled?(:group_scim, @group)
+  %section.row.border-top.mt-4
+    .col-lg-3.append-bottom-default
+      %h4.page-title
+        = _("SCIM Token")
+    .col-lg-9
+      = render 'scim_token'

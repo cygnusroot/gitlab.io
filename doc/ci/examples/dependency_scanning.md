@@ -1,38 +1,22 @@
 # Dependency Scanning with GitLab CI/CD **[ULTIMATE]**
 
+## Job definition template
+
 CAUTION: **Caution:**
-The job definition shown below is supported on GitLab 11.5 and later versions.
-It also requires the GitLab Runner 11.5 or later.
-For earlier versions, use the [previous job definitions](#previous-job-definitions).
+The CI/CD template for job definition is supported on GitLab 11.9 and later versions.
+For earlier versions, use the [manual job definition](#manual job definition).
 
 This example shows how to run Dependency Scanning on your
 project's dependencies by using GitLab CI/CD.
 
-
 First, you need GitLab Runner with
 [docker-in-docker executor](../docker/using_docker_build.md#use-docker-in-docker-executor).
 
-Once you set up the Runner, add a new job to `.gitlab-ci.yml` that
-generates the expected report:
+Once you set up the Runner, add a new job to `.gitlab-ci.yml` using [the CI/CD template](https://docs.gitlab.com/ee/ci/yaml/#includetemplate) for Dependency Scanning:
 
 ```yaml
-dependency_scanning:
-  image: docker:stable
-  variables:
-    DOCKER_DRIVER: overlay2
-  allow_failure: true
-  services:
-    - docker:stable-dind
-  script:
-    - export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
-    - docker run
-        --env DEP_SCAN_DISABLE_REMOTE_CHECKS="${DEP_SCAN_DISABLE_REMOTE_CHECKS:-false}"
-        --volume "$PWD:/code"
-        --volume /var/run/docker.sock:/var/run/docker.sock
-        "registry.gitlab.com/gitlab-org/security-products/dependency-scanning:$SP_VERSION" /code
-  artifacts:
-    reports:
-      dependency_scanning: gl-dependency-scanning-report.json
+include:
+  template: Dependency-Scanning.gitlab-ci.yml
 ```
 
 The above example will create a `dependency_scanning` job in your CI/CD pipeline
@@ -61,9 +45,86 @@ For [GitLab Ultimate][ee] users, this information will
 be automatically extracted and shown right in the merge request widget.
 [Learn more on Dependency Scanning in merge requests](../../user/project/merge_requests/dependency_scanning.md).
 
+## Job execution customization
+
+### Scanning tool settings
+
+You can customize the execution of the job via settings that can be updated through environment variables. These variables
+are documented in the [template](#job-definition-template) definition and in the Dependency Scanning
+[README](https://gitlab.com/gitlab-org/security-products/dependency-scanning#settings).
+
+The customization itself is performed by leveraging the [`variables`](https://docs.gitlab.com/ee/ci/yaml/#variables)
+section in the CI config:
+
+```yaml
+include:
+  template: Dependency-Scanning.gitlab-ci.yml
+
+variables:
+  DEP_SCAN_DISABLE_REMOTE_CHECKS: true
+```
+
+Because template is evaluated [before](https://docs.gitlab.com/ee/ci/yaml/#include) the CI config,
+the last mention of the variable will take precedence.
+
+### Overriding job definition
+
+If you want to override the job definition (change its properties like `variables` or `dependencies`), you need to open
+its definition after the template inclusion and specify any additional keys under it: 
+
+```yaml
+include:
+  template: Dependency-Scanning.gitlab-ci.yml
+
+dependency_scanning:
+  variables:
+    CI_DEBUG_TRACE: "true"
+``` 
+
 ## Supported languages and package managers
 
 See [the full list of supported languages and package managers](../../user/project/merge_requests/dependency_scanning.md#supported-languages-and-dependency-managers).
+
+## Manual job definition
+
+CAUTION: **Caution:**
+The job definition shown below is supported on GitLab 11.5 and later versions _(although it's preferred to use 
+[the job definition template](#job-definition-template) since 11.9)_.
+It also requires the GitLab Runner 11.5 or later.
+For earlier versions, use the [previous job definitions](#previous-job-definitions).
+
+If you are on GitLab prior to 11.9, you can define it manually using the following snippet:
+
+```yaml
+dependency_scanning:
+  image: docker:stable
+  variables:
+    DOCKER_DRIVER: overlay2
+  allow_failure: true
+  services:
+    - docker:stable-dind
+  script:
+    - export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
+    - |
+      docker run \
+      --env DS_ANALYZER_IMAGES \
+      --env DS_ANALYZER_IMAGE_PREFIX \
+      --env DS_ANALYZER_IMAGE_TAG \
+      --env DS_DEFAULT_ANALYZERS \
+      --env DEP_SCAN_DISABLE_REMOTE_CHECKS \
+      --env DS_DOCKER_CLIENT_NEGOTIATION_TIMEOUT \
+      --env DS_PULL_ANALYZER_IMAGE_TIMEOUT \
+      --env DS_RUN_ANALYZER_TIMEOUT \
+      --volume "$PWD:/code" \
+      --volume /var/run/docker.sock:/var/run/docker.sock \
+      "registry.gitlab.com/gitlab-org/security-products/dependency-scanning:$SP_VERSION" /code
+  artifacts:
+    reports:
+      dependency_scanning: gl-dependency-scanning-report.json
+```
+
+You can supply many other [settings variables](https://gitlab.com/gitlab-org/security-products/dependency-scanning#settings)
+via `docker run --env` to customize your job execution.
 
 ## Previous job definitions
 
@@ -86,11 +147,19 @@ dependency_scanning:
     - docker:stable-dind
   script:
     - export SP_VERSION=$(echo "$CI_SERVER_VERSION" | sed 's/^\([0-9]*\)\.\([0-9]*\).*/\1-\2-stable/')
-    - docker run
-        --env DEP_SCAN_DISABLE_REMOTE_CHECKS="${DEP_SCAN_DISABLE_REMOTE_CHECKS:-false}"
-        --volume "$PWD:/code"
-        --volume /var/run/docker.sock:/var/run/docker.sock
-        "registry.gitlab.com/gitlab-org/security-products/dependency-scanning:$SP_VERSION" /code
+    - |
+      docker run \
+      --env DS_ANALYZER_IMAGES \
+      --env DS_ANALYZER_IMAGE_PREFIX \
+      --env DS_ANALYZER_IMAGE_TAG \
+      --env DS_DEFAULT_ANALYZERS \
+      --env DEP_SCAN_DISABLE_REMOTE_CHECKS \
+      --env DS_DOCKER_CLIENT_NEGOTIATION_TIMEOUT \
+      --env DS_PULL_ANALYZER_IMAGE_TIMEOUT \
+      --env DS_RUN_ANALYZER_TIMEOUT \
+      --volume "$PWD:/code" \
+      --volume /var/run/docker.sock:/var/run/docker.sock \
+      "registry.gitlab.com/gitlab-org/security-products/dependency-scanning:$SP_VERSION" /code
   artifacts:
     paths: [gl-dependency-scanning-report.json]
 ```

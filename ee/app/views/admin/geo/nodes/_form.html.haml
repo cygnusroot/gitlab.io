@@ -15,7 +15,7 @@
     .form-check
       = form.check_box :primary, class: 'form-check-input'
       = form.label :primary, class: 'form-check-label' do
-        %strong= s_('Geo|This is a primary node')
+        %span= s_('Geo|This is a primary node')
 
 .form-row.form-group.js-hide-if-geo-primary{ class: ('hidden' unless geo_node.secondary?) }
   .col-sm-4

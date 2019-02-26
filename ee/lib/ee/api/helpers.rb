@@ -67,10 +67,6 @@ module EE
               .allow_group_owners_to_manage_ldap
       end
 
-      def authorize_manage_saml!(group)
-        unauthorized! unless can?(current_user, :admin_group_saml, group)
-      end
-
       def check_group_saml_configured
         forbidden!('Group SAML not enabled.') unless ::Gitlab::Auth::GroupSaml::Config.enabled?
       end

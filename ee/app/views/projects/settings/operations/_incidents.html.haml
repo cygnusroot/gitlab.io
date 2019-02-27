@@ -1,7 +1,10 @@
+- return unless @project.feature_available?(:incident_management, current_user)
+
+- templates =  []
 - setting = incident_management_setting
 - templates = [''] + setting.available_issue_templates.map { |t| [t.name, t.key] }
 
-%section.settings.expanded.border-0.no-animate
+%section.settings.expanded.no-animate
   .settings-header
     %h4= _('Incidents')
     %p

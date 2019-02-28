@@ -216,7 +216,7 @@ module CommitsHelper
     if merge_request&.persisted?
       diffs_project_merge_request_path(project, merge_request, commit_id: commit.id)
     else
-      project_commit_path(project, commit)
+      project_commit_path(project, commit.id)
     end
   end
 end

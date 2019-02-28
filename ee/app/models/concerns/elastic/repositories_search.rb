@@ -59,15 +59,19 @@ module Elastic
         project_ids = response.map {|result| result["_source"]["commit"]["rid"] }.uniq
         projects = Project.where(id: project_ids).index_by(&:id)
 
-        # n + 1: https://gitlab.com/gitlab-org/gitlab-ee/issues/3454
-        commits = Gitlab::GitalyClient.allow_n_plus_1_calls do
-          response.map do |result|
-            sha = result["_source"]["commit"]["sha"]
-            project_id = result["_source"]["commit"]["rid"].to_i
+        commits = response.map do |result|
+          project_id = result["_source"]["commit"]["rid"].to_i
+          Elasticsearch::Git::LiteCommit.new(projects[project_id], result['_source']['commit'])
+        end
 
-            projects[project_id].try(:commit, sha)
-          end
-        end.compact
+        # n + 1: https://gitlab.com/gitlab-org/gitlab-ee/issues/3454
+        # commits = Gitlab::GitalyClient.allow_n_plus_1_calls do
+        #   response.map do |result|
+        #     sha = result["_source"]["commit"]["sha"]
+        #     project_id = result["_source"]["commit"]["rid"].to_i
+        #     projects[project_id].try(:commit, sha)
+        #   end
+        # end.compact
 
         # Before "map" we had a paginated array so we need to recover it
         offset = per_page * ((page || 1) - 1)

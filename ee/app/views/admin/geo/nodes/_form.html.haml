@@ -7,8 +7,7 @@
   .form-group.col-sm-6.js-hide-if-geo-primary{ class: ('hidden' unless geo_node.secondary?) }
     = form.label :alternate_url, s_('Geo|Alternate URL'), class: 'font-weight-bold'
     = form.text_field :alternate_url, class: 'form-control'
-    .form-text.text-muted
-      #{ _("To support OAuth logins to this node at a different domain than URL") }
+    .form-text.text-muted= s_('Geo|To support OAuth logins to this node at a different domain than URL')
 
 .form-row.form-group
   .col-sm-12

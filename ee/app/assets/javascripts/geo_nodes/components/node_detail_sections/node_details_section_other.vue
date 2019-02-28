@@ -91,6 +91,14 @@ export default {
         ? `${cssClass} node-detail-value-error`
         : cssClass;
     },
+    sectionItemsContainerClasses() {
+      const { nodeTypePrimary, showSectionItems } = this;
+      return {
+        'col-md-6 prepend-left-15': nodeTypePrimary,
+        'row col-md-12 prepend-left-10': !nodeTypePrimary,
+        'd-flex': showSectionItems && !nodeTypePrimary,
+      };
+    },
   },
   methods: {
     handleSectionToggle(toggleState) {
@@ -101,10 +109,7 @@ export default {
 </script>
 
 <template>
-  <div
-    :class="{ 'node-detail-section-secondary': !nodeTypePrimary }"
-    class="row-fluid clearfix node-detail-section other-section"
-  >
+  <div class="row-fluid clearfix node-detail-section other-section">
     <div class="col-md-12">
       <section-reveal-button
         :button-title="__('Other information')"
@@ -113,10 +118,7 @@ export default {
     </div>
     <div
       v-show="showSectionItems"
-      :class="{
-        'col-md-6 prepend-left-15': nodeTypePrimary,
-        'row col-md-12 prepend-left-10': !nodeTypePrimary,
-      }"
+      :class="sectionItemsContainerClasses"
       class="prepend-top-10 section-items-container"
     >
       <geo-node-detail-item

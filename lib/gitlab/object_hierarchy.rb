@@ -132,13 +132,14 @@ module Gitlab
       cte = SQL::RecursiveCTE.new(:base_and_ancestors)
       depth_column = :depth
 
-      base_query = ancestors_base.except(:order)
+      base_query = ancestors_base.select(:id).except(:order)
       base_query = base_query.select("1 as #{depth_column}", objects_table[Arel.star]) if hierarchy_order
 
       cte << base_query
 
       # Recursively get all the ancestors of the base set.
       parent_query = model
+        .select(objects_table[:id])
         .from([objects_table, cte.table])
         .where(objects_table[:id].eq(cte.table[:parent_id]))
         .except(:order)
@@ -155,10 +156,11 @@ module Gitlab
     def base_and_descendants_cte
       cte = SQL::RecursiveCTE.new(:base_and_descendants)
 
-      cte << descendants_base.except(:order)
+      cte << descendants_base.select(:id).except(:order)
 
       # Recursively get all the descendants of the base set.
       cte << model
+        .select(objects_table[:id])
         .from([objects_table, cte.table])
         .where(objects_table[:parent_id].eq(cte.table[:id]))
         .except(:order)

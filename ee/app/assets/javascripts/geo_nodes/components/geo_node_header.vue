@@ -72,7 +72,6 @@ export default {
       <div class="col-md-8 clearfix">
         <span class="d-flex float-left append-right-10">
           <strong class="node-url"> {{ node.url }} </strong>
-          <span v-if="node.syncUrl">&nbsp;or {{ node.syncUrl }}</span>
           <gl-loading-icon
             v-if="nodeDetailsLoading || node.nodeActionActive"
             class="node-details-loading prepend-left-10 inline"

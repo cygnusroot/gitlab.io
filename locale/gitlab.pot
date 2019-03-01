@@ -4522,6 +4522,9 @@ msgstr ""
 msgid "GeoNodes|Synced"
 msgstr ""
 
+msgid "GeoNodes|Synchronisation URL"
+msgstr ""
+
 msgid "GeoNodes|Unused slots"
 msgstr ""
 
@@ -4693,6 +4696,9 @@ msgstr ""
 msgid "Geo|Synced"
 msgstr ""
 
+msgid "Geo|Synchronisation URL"
+msgstr ""
+
 msgid "Geo|Synchronization failed - %{error}"
 msgstr ""
 
@@ -4700,6 +4706,9 @@ msgid "Geo|This is a primary node"
 msgstr ""
 
 msgid "Geo|To support OAuth logins to this node at a different domain than URL"
+msgstr ""
+
+msgid "Geo|To use other URL to reach this primary node from secondaries"
 msgstr ""
 
 msgid "Geo|Tracking entry for project (%{project_id}) was successfully removed."

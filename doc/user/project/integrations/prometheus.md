@@ -131,9 +131,6 @@ will appear, with options to set the threshold and operator. Click **Add** to sa
 
 ![Adding an alert](img/prometheus_alert.png)
 
-If the metric exceeds the threshold of the alert for over 5 minutes, an email
-will be sent to all [Maintainers and Owners](../../permissions.md#project-members-permissions) of the project.
-
 To remove the alert, click back on the alert icon for the desired metric, and click **Delete**.
 
 #### External Prometheus instances
@@ -156,6 +153,16 @@ receivers:
     url: http://192.168.178.31:3001/root/manual_prometheus/prometheus/alerts/notify.json
   ...
 ```
+
+### Taking action on an alert **[ULTIMATE]**
+
+> [Introduced](https://gitlab.com/gitlab-org/gitlab-ee/issues/4925) in [GitLab Ultimate](https://about.gitlab.com/pricing/) 11.9.
+
+Alerts can be used to trigger actions. The actions can be configured on **Settings > Operations > Incidents**.
+
+An issue can be opened automatically when an alert is triggered. Issues are created using a selected template. To add labels, mentions, or other customizations, [quick actions](../quick_actions.md) can be included in the template.
+
+If the metric exceeds the threshold of the alert for over 5 minutes, an email will be sent to all [Maintainers and Owners](../../permissions.md#project-members-permissions) of the project.
 
 ## Determining the performance impact of a merge
 

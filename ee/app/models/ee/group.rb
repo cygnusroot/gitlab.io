@@ -17,6 +17,7 @@ module EE
       has_many :epics
 
       has_one :saml_provider
+      has_one :scim_ouath_access_token, dependent: :destroy
 
       has_many :ldap_group_links, foreign_key: 'group_id', dependent: :destroy # rubocop:disable Cop/ActiveRecordDependent
       has_many :hooks, dependent: :destroy, class_name: 'GroupHook' # rubocop:disable Cop/ActiveRecordDependent

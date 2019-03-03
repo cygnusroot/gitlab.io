@@ -7,7 +7,8 @@ describe Gitlab::Ci::Config::Entry::Jobs do
         '.hidden_job'.to_sym => { script: 'something' },
         '.hidden_bridge'.to_sym => { trigger: 'my/project' },
         regular_job: { script: 'something' },
-        my_trigger: { trigger: 'my/project' }
+        my_trigger: { trigger: 'my/project' },
+        my_triggered_by: { triggered_by: 'other/project' }
       }
     )
   end
@@ -35,15 +36,24 @@ describe Gitlab::Ci::Config::Entry::Jobs do
           .to eq ::Gitlab::Ci::Config::Entry::Job
       end
 
-      it 'correctly identifies cross-project triggers' do
+      it 'correctly identifies downstream cross-project triggers' do
         expect(subject.node_type(:my_trigger))
+          .to eq ::EE::Gitlab::Ci::Config::Entry::Bridge
+      end
+
+      it 'correctly identifies upstream cross-project triggers' do
+        expect(subject.node_type(:my_triggered_by))
           .to eq ::EE::Gitlab::Ci::Config::Entry::Bridge
       end
     end
 
     describe '#bridge?' do
-      it 'returns true when a job is a trigger' do
+      it 'returns true when a job is a downstream trigger' do
         expect(subject.bridge?(:my_trigger)).to be true
+      end
+
+      it 'returns true when a job is an upstream trigger' do
+        expect(subject.bridge?(:my_triggered_by)).to be true
       end
 
       it 'returns false when a job is not a trigger' do
@@ -52,8 +62,12 @@ describe Gitlab::Ci::Config::Entry::Jobs do
     end
 
     describe '#hidden?' do
-      it 'does not claim that a bridge job is hidden' do
+      it 'does not claim that a downstream bridge job is hidden' do
         expect(subject.hidden?(:my_trigger)).to be false
+      end
+
+      it 'does not claim that an upstream bridge job is hidden' do
+        expect(subject.hidden?(:my_triggered_by)).to be false
       end
     end
 
@@ -70,6 +84,11 @@ describe Gitlab::Ci::Config::Entry::Jobs do
             stage: 'test',
             only: { refs: %w[branches tags] },
             ignore: false
+          },
+          my_triggered_by: {
+            name: :my_triggered_by,
+            triggered_by: { project: 'other/project' },
+            stage: 'test'
           },
           regular_job: {
             script: %w[something],
@@ -100,15 +119,24 @@ describe Gitlab::Ci::Config::Entry::Jobs do
           .to eq ::Gitlab::Ci::Config::Entry::Job
       end
 
-      it 'does not identify trigger job as a bridge job' do
+      it 'does not identify downstream trigger job as a bridge job' do
         expect(subject.node_type(:my_trigger))
+          .to eq ::Gitlab::Ci::Config::Entry::Job
+      end
+
+      it 'does not identify upstream trigger job as a bridge job' do
+        expect(subject.node_type(:my_triggered_by))
           .to eq ::Gitlab::Ci::Config::Entry::Job
       end
     end
 
     describe '#bridge?' do
-      it 'returns false even when a job is a trigger' do
+      it 'returns false even when a job is a downstream trigger' do
         expect(subject.bridge?(:my_trigger)).to be false
+      end
+
+      it 'returns false even when a job is an upstream trigger' do
+        expect(subject.bridge?(:my_triggered_by)).to be false
       end
 
       it 'returns false when a job is not a trigger' do

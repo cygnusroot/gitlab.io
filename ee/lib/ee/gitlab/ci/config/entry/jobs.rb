@@ -21,7 +21,7 @@ module EE
 
             def bridge?(name)
               config.fetch(name).yield_self do |value|
-                value.is_a?(Hash) && value.key?(:trigger) &&
+                value.is_a?(Hash) && (value.key?(:trigger) || value.key?(:triggered_by)) &&
                   cross_project_triggers_enabled?
               end
             end

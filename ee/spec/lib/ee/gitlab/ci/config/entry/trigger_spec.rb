@@ -80,7 +80,7 @@ describe EE::Gitlab::Ci::Config::Entry::Trigger do
   end
 
   context 'when trigger configuration is not valid' do
-    context 'when branch is not provided' do
+    context 'when value is a number' do
       let(:config) { 123 }
 
       describe '#valid?' do

@@ -7,7 +7,7 @@ module EE
         module Entry
           ##
           # Entry that represents a CI/CD Bridge job that is responsible for
-          # defining a downstream project trigger.
+          # defining a downstream or upstream project trigger.
           #
           class Bridge < ::Gitlab::Config::Entry::Node
             include ::Gitlab::Config::Entry::Configurable

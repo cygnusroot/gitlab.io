@@ -80,7 +80,7 @@ describe Ci::CreateCrossProjectPipelineService, '#execute' do
       service.execute(bridge)
 
       expect(bridge.reload).to be_failed
-      expect(bridge.failure_reason).to eq 'insufficient_bridge_permissions'
+      expect(bridge.failure_reason).to eq 'downstream_insufficient_bridge_permissions'
     end
   end
 
@@ -138,7 +138,7 @@ describe Ci::CreateCrossProjectPipelineService, '#execute' do
         service.execute(bridge)
 
         expect(bridge.reload).to be_failed
-        expect(bridge.failure_reason).to eq 'invalid_bridge_trigger'
+        expect(bridge.failure_reason).to eq 'downstream_invalid_bridge_trigger'
       end
     end
 

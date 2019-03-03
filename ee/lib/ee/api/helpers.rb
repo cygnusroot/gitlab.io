@@ -67,6 +67,10 @@ module EE
               .allow_group_owners_to_manage_ldap
       end
 
+      def check_group_scim_enabled(group)
+        forbidden!('Group SCIM not enabled.') unless Feature.enabled?(:group_scim, group)
+      end
+
       def check_group_saml_configured
         forbidden!('Group SAML not enabled.') unless ::Gitlab::Auth::GroupSaml::Config.enabled?
       end

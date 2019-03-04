@@ -44,6 +44,7 @@
 
 - pipeline_default:store_security_reports
 - pipeline_default:ci_create_cross_project_pipeline
+- pipeline_default:ci_create_downstream_projects_pipeline
 
 - admin_emails
 - create_github_webhook

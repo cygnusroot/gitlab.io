@@ -103,6 +103,14 @@ module EE
 
             pipeline.update_bridge_status!
           end
+
+          after_transition running: :success do |pipeline|
+            next if pipeline.project.downstream_projects.empty?
+
+            pipeline.run_after_commit do
+              ::Ci::CreateDownstreamProjectsPipelineWorker.perform_async(pipeline.id)
+            end
+          end
         end
       end
 

@@ -38,7 +38,7 @@ use the packages that are available for your OS.
 
 ## Elasticsearch repository indexer (beta)
 
-In order to improve elasticsearch indexing performance GitLab has made available a [new indexer written in Go](https://gitlab.com/gitlab-org/gitlab-elasticsearch-indexer).
+In order to improve elasticsearch indexing performance, GitLab has made available a [new indexer written in Go](https://gitlab.com/gitlab-org/gitlab-elasticsearch-indexer).
 This will replace the included Ruby indexer in the future but should be considered beta software for now, so there may be some bugs.
 
 If you would like to use it, please follow the instructions below.
@@ -56,7 +56,7 @@ installed before running `make`.
 
 ##### Debian / Ubuntu
 
-To install on Debian or Ubutu, run:
+To install on Debian or Ubuntu, run:
 
 ```sh
 sudo apt install libicu-dev
@@ -113,7 +113,7 @@ for each Elasticsearch node, per the [official guidelines](https://www.elastic.c
 Keep in mind, this is the **minimum requirements** as per ElasticSearch. For
 production instances, they recommend considerably more resources.
 
-Storage requirements also vary based on installation side, but as a rule of
+Storage requirements also vary based on the installation side, but as a rule of
 thumb, you should allocate the total size of your production database, **plus**
 two-thirds of the total size of your git repositories. Efforts to reduce this
 total are being tracked in this epic: [gitlab-org&153](https://gitlab.com/groups/gitlab-org/-/epics/153).
@@ -127,7 +127,7 @@ The following Elasticsearch settings are available:
 
 | Parameter                           | Description |
 | ---------                           | ----------- |
-| `Elasticsearch indexing`            | Enables/disables Elasticsearch indexing. You may want to enable indexing but disable search in order to give the index time to be fully completed, for example. Also keep in mind that this option doesn't have any impact on existing data, this only enables/disables background indexer which tracks data changes. So by enabling this you will not get your existing data indexed, use special rake task for that as explained in [Adding GitLab's data to the Elasticsearch index](#adding-gitlabs-data-to-the-elasticsearch-index). |
+| `Elasticsearch indexing`            | Enables/disables Elasticsearch indexing. You may want to enable indexing but disable search in order to give the index time to be fully completed, for example. Also, keep in mind that this option doesn't have any impact on existing data, this only enables/disables background indexer which tracks data changes. So by enabling this you will not get your existing data indexed, use special rake task for that as explained in [Adding GitLab's data to the Elasticsearch index](#adding-gitlabs-data-to-the-elasticsearch-index). |
 | `Use the new repository indexer (beta)` | Perform repository indexing using [GitLab Elasticsearch Indexer](https://gitlab.com/gitlab-org/gitlab-elasticsearch-indexer). |
 | `Search with Elasticsearch enabled` | Enables/disables using Elasticsearch in search. |
 | `URL`                              | The URL to use for connecting to Elasticsearch. Use a comma-separated list to support clustering (e.g., "http://host1, https://host2:9200"). If your Elasticsearch instance is password protected, pass the `username:password` in the URL (e.g., `http://<username>:<password>@<elastic_host>:9200/`). |
@@ -183,8 +183,8 @@ bundle exec rake gitlab:elastic:create_empty_index RAILS_ENV=production
 ```
 
 Indexing large Git repositories can take a while. To speed up the process, you
-can temporarily disable auto-refreshing and replicating. In our experience you can expect a 20%
-decreae in indexing time. We'll enable them when indexing is done. This step is optional!
+can temporarily disable auto-refreshing and replicating. In our experience, you can expect a 20%
+decrease in indexing time. We'll enable them when indexing is done. This step is optional!
 
 ```bash
 curl --request PUT localhost:9200/gitlab-production/_settings --data '{
@@ -223,7 +223,7 @@ projects, you may wish to increase the batch size, by setting the `BATCH`
 environment variable.
 
 You can also run the initial indexing synchronously - this is most useful if
-you have a small number of projects, or need finer-grained control over indexing
+you have a small number of projects or need finer-grained control over indexing
 than Sidekiq permits:
 
 ```sh
@@ -281,7 +281,7 @@ bundle exec rake gitlab:elastic:index_repositories UPDATE_INDEX=true ID_TO=1000 
 ```
 
 You can also use the `gitlab:elastic:clear_index_status` Rake task to force the
-indexer to "forget" all progresss, so retrying the indexing process from the
+indexer to "forget" all progress, so retrying the indexing process from the
 start.
 
 To index all wikis:
@@ -297,7 +297,7 @@ bundle exec rake gitlab:elastic:index_wikis RAILS_ENV=production
 The wiki indexer also supports the `ID_FROM` and `ID_TO` parameters if you want
 to limit a project set.
 
-Index all database entities (Keep in mind it can take a while so consider using `screen` or `tmux`):
+Index all database entities (Keep in mind it can take a while, so consider using `screen` or `tmux`):
 
 ```sh
 # Omnibus installations
@@ -339,9 +339,9 @@ There are several rake tasks available to you via the command line:
 * [sudo gitlab-rake gitlab:elastic:index_repositories_async](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L13)
   * This iterates over all projects and places them in batches. It then sends these batches to the background via sidekiq jobs to be indexed.
 * [sudo gitlab-rake gitlab:elastic:index_repositories_status](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L25)
-  * This determines the overall status of the indexing. It is done by counting the total number of indexed projects, dividing by a count of the total number of projects, then mulitplying by 100.
+  * This determines the overall status of the indexing. It is done by counting the total number of indexed projects, dividing by a count of the total number of projects, then multiplying by 100.
 * [sudo gitlab-rake gitlab:elastic:index_repositories](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L34)
-  * This iterates over all projects and places them in batches. It then performs an indexing on said batches synchronously.
+  * This iterates over all projects and places them in batches. It then performs indexing on said batches synchronously.
 * [sudo gitlab-rake gitlab:elastic:index_wikis](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L44)
   * Iterates over every project, determines if said project contains wiki data, and then indexes the blobs (content) of said wiki data.
 * [sudo gitlab-rake gitlab:elastic:index_database](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L88)
@@ -377,9 +377,9 @@ There are several rake tasks available to you via the command line:
 
 ### Environment Variables
 
-In addition to the rake tasks, there are some environment variables that can be used to modify the procees:
+In addition to the rake tasks, there are some environment variables that can be used to modify the process:
 
-| Environemnt Variable | Data Type | What it does                                                                |
+| Environment Variable | Data Type | What it does                                                                |
 | -------------------- |:---------:| --------------------------------------------------------------------------- |
 | BATCH                | Integer   | Modifies the size of the indexing batch (default 300)                       |
 | UPDATE_INDEX         | Boolean   | Tells the indexer to overwrite any existing index data                      |
@@ -388,7 +388,7 @@ In addition to the rake tasks, there are some environment variables that can be 
 
 #### Batching
 
-The ability to apply batching makes the indexer run more efficently. The default
+The ability to apply batching makes the indexer run more efficiently. The default
 size of a batch is 300, which may or may not be ideal for your setup. Depending
 on the resources available to your GitLab instance (sidekiq) and your ElasticSearch
 instance (RAM, CPU), you may be able to increase or decrease the batch size for
@@ -396,16 +396,16 @@ more efficiency.
 
 * The larger the batch size is, the less sidekiq jobs and indexing requests get created.
 * The larger the batch size is, the more time and RAM it takes to process.
-* The smaller the batch size, the more sidekiq jobs and indexing requests get created.
+* The smaller the batch size, the more sidekiq jobs, and indexing requests get created.
 * The smaller the batch size, the more CPU gets utilized.
 
 Finding the ideal size can be tricky, and will vary from user to user. Generally
 speaking, if the default is not ideal for you, try reducing it to somewhere in
-the 50-150 range (for bigger sized repos) or 450-600 range (for many small sized repos).
+the 50-150 range (for bigger sized repos) or 450-600 range (for many small-sized repos).
 
 #### Indexing a specific project
 
-Because the `ID_TO` and `ID_FROM` environment variables are use the `or equal to` comparison, you can index only one project by using both this variables with the same project ID number:
+Because the `ID_TO` and `ID_FROM` environment variables use the `or equal to` comparison, you can index only one project by using both these variables with the same project ID number:
 
 ```sh
 root@git:~# sudo gitlab-rake gitlab:elastic:index_repositories ID_TO=5 ID_FROM=5
@@ -433,7 +433,7 @@ When performing a search, the GitLab index will use the following scopes:
 
 ### Deleted documents
 
-Whenever a change or deletion is made to an indexed GitLab object (a merge request description is changed, a file is deleted from the master branch in a repository, a project is deleted, etc), a document in the index is deleted.  However, since these are "soft" deletes, the overall number of "deleted documents", and therefore wasted space, increases.  Elasticsearch does intelligent merging of segments in order to remove these deleted documents.  However, depending on the amount and type of activity in your GitLab installation, it's possible to see as much as 50% wasted space in the index.
+Whenever a change or deletion is made to an indexed GitLab object (a merge request description is changed, a file is deleted from the master branch in a repository, a project is deleted, etc), a document in the index is deleted.  However, since these are "soft" deletes, the overall number of "deleted documents", and therefore wasted space, increases.  Elasticsearch does the intelligent merging of segments in order to remove these deleted documents.  However, depending on the amount and type of activity in your GitLab installation, it's possible to see as much as 50% wasted space in the index.
 
 In general, we recommend simply letting Elasticseach merge and reclaim space automatically, with the default settings.  From [Lucene's Handling of Deleted Documents](https://www.elastic.co/blog/lucenes-handling-of-deleted-documents "Lucene's Handling of Deleted Documents"), _"Overall, besides perhaps decreasing the maximum segment size, it is best to leave Lucene's defaults as-is and not fret too much about when deletes are reclaimed."_
 
@@ -449,7 +449,7 @@ However, some larger installations may wish to tune the merge policy settings:
   }'
   ```
 
-- You can also adjust `index.merge.policy.reclaim_deletes_weight`, which controls how aggressively deletions are targetd.  But this can lead to costly merge decisions, so we recommend not changing this unless you understand the tradeoffs.
+- You can also adjust `index.merge.policy.reclaim_deletes_weight`, which controls how aggressively deletions are targeted.  But this can lead to costly merge decisions, so we recommend not changing this unless you understand the tradeoffs.
 
   ```bash
   curl --request PUT http://localhost:9200/gitlab-production/_settings --data '{
@@ -503,7 +503,7 @@ Here are some common pitfalls and how to overcome them:
 
     You will need to re-run all the rake tasks to re-index the database, repositories, and wikis.
     
-- **The index process is taking a very long time**
+- **The indexing process is taking a very long time**
 
     The more data present in your GitLab instance, the longer the indexing process takes. You might want to try adjusting the BATCH sizes for asynchronous indexing to help speed up the process.
 

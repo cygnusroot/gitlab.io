@@ -29,6 +29,21 @@ describe Projects::Prometheus::Alerts::NotifyService do
     end
   end
 
+  shared_examples 'creates incident issue' do
+    let(:create_incident_service) { spy }
+
+    it 'creates an incident issue' do
+      expect(IncidentManagement::CreateIssueService)
+        .to receive(:new)
+        .and_return(create_incident_service)
+
+      expect(create_incident_service)
+        .to receive(:execute)
+
+      expect(subject).to eq(true)
+    end
+  end
+
   shared_examples 'persists events' do
     let(:create_events_service) { spy }
 

@@ -9,7 +9,8 @@ module Projects
           return false unless valid_alert_manager_token?(token)
 
           send_alert_email if send_email?
-          persist_events(project, params)
+          open_incident_issue
+          persist_events
 
           true
         end
@@ -112,7 +113,18 @@ module Projects
             .prometheus_alerts_fired(project, firings)
         end
 
-        def persist_events(project, params)
+        def open_incident_issue
+          return unless firings.any?
+
+          # TODO async?
+          firings.each do |firing_alert|
+            IncidentManagement::CreateIssueService
+              .new(project, nil, firing_alert)
+              .execute
+          end
+        end
+
+        def persist_events
           CreateEventsService.new(project, nil, params).execute
         end
       end

@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import setupToggleButtons from '~/toggle_buttons';
 import getSetTimeoutPromise from './helpers/set_timeout_promise_helper';
 
@@ -80,7 +79,7 @@ describe('ToggleButtons', () => {
     const toggleButton = wrapper.querySelector('.js-project-feature-toggle');
     const input = wrapper.querySelector('.js-project-feature-toggle-input');
 
-    $(input).on('trigger-change', changeSpy);
+    input.addEventListener('trigger-change', changeSpy);
 
     toggleButton.click();
 

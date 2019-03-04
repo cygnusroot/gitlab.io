@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import Flash from './flash';
 import { __ } from './locale';
 import { parseBoolean } from './lib/utils/common_utils';
@@ -39,7 +38,8 @@ function onToggleClicked(toggle, input, clickCallback) {
       toggle.removeAttribute('disabled');
       toggle.classList.toggle('is-loading', false);
 
-      $(input).trigger('trigger-change');
+      const event = new Event('trigger-change');
+      input.dispatchEvent(event);
     })
     .catch(() => {
       Flash(__('Something went wrong when toggling the button'));

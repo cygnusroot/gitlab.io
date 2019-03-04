@@ -465,6 +465,18 @@ However, some larger installations may wish to tune the merge policy settings:
 
 Here are some common pitfalls and how to overcome them:
 
+- **How can I verify my GitLab instance is using ElasticSearch?**
+
+    The easiest method is via the rails console (`sudo gitlab-rails console`) by running the following:
+    
+    ```ruby
+    u = User.find_by_username('your-username')
+    s = SearchService.new(u, {:search => 'search_term'})
+    pp s.search_objects.class.name
+    ```
+    
+    If you see `Elasticsearch::Model::Response::Records`, you are using ElasticSearch. 
+
 - **I updated GitLab and now I can't find anything**
 
     We continuously make updates to our indexing strategies and aim to support

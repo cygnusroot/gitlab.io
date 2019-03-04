@@ -723,6 +723,13 @@ ActiveRecord::Schema.define(version: 20190305162221) do
     t.index ["source_project_id"], name: "index_ci_sources_pipelines_on_source_project_id", using: :btree
   end
 
+  create_table "ci_sources_projects", force: :cascade do |t|
+    t.integer "project_id"
+    t.integer "source_project_id"
+    t.index ["project_id"], name: "index_ci_sources_projects_on_project_id", using: :btree
+    t.index ["source_project_id"], name: "index_ci_sources_projects_on_source_project_id", using: :btree
+  end
+
   create_table "ci_stages", force: :cascade do |t|
     t.integer "project_id"
     t.integer "pipeline_id"
@@ -3375,6 +3382,8 @@ ActiveRecord::Schema.define(version: 20190305162221) do
   add_foreign_key "ci_sources_pipelines", "ci_pipelines", column: "source_pipeline_id", name: "fk_d4e29af7d7", on_delete: :cascade
   add_foreign_key "ci_sources_pipelines", "projects", column: "source_project_id", name: "fk_acd9737679", on_delete: :cascade
   add_foreign_key "ci_sources_pipelines", "projects", name: "fk_1e53c97c0a", on_delete: :cascade
+  add_foreign_key "ci_sources_projects", "projects", column: "source_project_id", name: "fk_64b6855cbc", on_delete: :cascade
+  add_foreign_key "ci_sources_projects", "projects", name: "fk_96d5762010", on_delete: :cascade
   add_foreign_key "ci_stages", "ci_pipelines", column: "pipeline_id", name: "fk_fb57e6cc56", on_delete: :cascade
   add_foreign_key "ci_stages", "projects", name: "fk_2360681d1d", on_delete: :cascade
   add_foreign_key "ci_trigger_requests", "ci_triggers", column: "trigger_id", name: "fk_b8ec8b7245", on_delete: :cascade

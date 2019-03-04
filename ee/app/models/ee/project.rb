@@ -66,6 +66,12 @@ module EE
 
       has_many :source_pipelines, class_name: 'Ci::Sources::Pipeline', foreign_key: :project_id
 
+      has_many :source_projects, class_name: 'Ci::Sources::Project', foreign_key: :project_id
+      has_many :sourced_projects, class_name: 'Ci::Sources::Project', foreign_key: :source_project_id
+
+      has_many :upstream_projects, through: :source_projects, source: :source_project
+      has_many :downstream_projects, through: :sourced_projects, source: :project
+
       has_many :webide_pipelines, -> { webide_source }, class_name: 'Ci::Pipeline', inverse_of: :project
 
       has_many :prometheus_alerts, inverse_of: :project

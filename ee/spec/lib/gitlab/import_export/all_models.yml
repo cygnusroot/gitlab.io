@@ -62,6 +62,10 @@ project:
 - repository_state
 - source_pipelines
 - sourced_pipelines
+- source_projects
+- sourced_projects
+- upstream_projects
+- downstream_projects
 - prometheus_metrics
 - vulnerabilities
 - vulnerability_feedback

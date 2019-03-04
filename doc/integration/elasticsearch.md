@@ -170,7 +170,7 @@ Make sure to prepare for this task by either [Horizontally Scaling](../administr
 or creating [extra sidekiq processes](../administration/operations/extra_sidekiq_processes.md)
 
 NOTE: **Note**:
-After indexing the repositories asynchronously, you MUST index the database to be able to search.
+After indexing the repositories asynchronously, you **MUST** index the database to be able to search.
 
 Configure Elasticsearch's host and port in **Admin > Settings**. Then create empty indexes using one of the following commands:
 

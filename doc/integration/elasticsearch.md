@@ -160,7 +160,7 @@ sudo gitlab-rake gitlab:elastic:index
 bundle exec rake gitlab:elastic:index RAILS_ENV=production
 ```
 
-After it completes the indexing process, enable Elasticsearch search.
+After it completes the indexing process, [enable Elasticsearch searching](elasticsearch.md#enabling-elasticsearch).
 
 ### Indexing large instances
 

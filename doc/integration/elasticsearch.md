@@ -184,7 +184,7 @@ bundle exec rake gitlab:elastic:create_empty_index RAILS_ENV=production
 
 Indexing large Git repositories can take a while. To speed up the process, you
 can temporarily disable auto-refreshing and replicating. In our experience you can expect a 20%
-time drop. We'll enable them when indexing is done. This step is optional!
+decreae in indexing time. We'll enable them when indexing is done. This step is optional!
 
 ```bash
 curl --request PUT localhost:9200/gitlab-production/_settings --data '{

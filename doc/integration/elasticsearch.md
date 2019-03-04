@@ -150,7 +150,7 @@ To disable the Elasticsearch integration:
 
 ### Indexing small instances (database size less than 500 MiB, size of repos less than 5 GiB)
 
-Configure Elasticsearch's host and port in **Admin > Settings**. Then use the index the data using one of the following commands:
+Configure Elasticsearch's host and port in **Admin > Settings**. Then index the data using one of the following commands:
 
 ```sh
 # Omnibus installations

@@ -136,9 +136,9 @@ forward any signals to the child processes. This makes it easy to stop all
 Sidekiq processes as you simply send a signal to the `sidekiq-cluster` process,
 instead of having to send it to the individual processes.
 
-If the `sidekiq-cluster` process crashes or is SIGKILL'd the child processes
-will terminate themselves after a few seconds. This ensures you don't end up
-with zombie Sidekiq processes.
+If the `sidekiq-cluster` process crashes or recieves a `SIGKILL`, the child
+processes will terminate themselves after a few seconds. This ensures you don't
+end up with zombie Sidekiq processes.
 
 All of this makes monitoring the processes fairly easy. Simply hook up
 `sidekiq-cluster` to your supervisor of choice (e.g. runit) and you're good to

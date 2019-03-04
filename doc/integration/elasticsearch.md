@@ -62,6 +62,14 @@ To install on Debian or Ubutu, run:
 sudo apt install libicu-dev
 ```
 
+##### CentOS / RHEL
+
+TO install on CentOS or RHEL, run:
+
+```sh
+sudo yum install libicu-devel
+```
+
 ##### Mac OSX
 
 To install on macOS, run:
@@ -76,6 +84,8 @@ export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:$PKG_CONFIG_PATH"
 To build and install the indexer, run:
 
 ```sh
+git clone https://gitlab.com/gitlab-org/gitlab-elasticsearch-indexer.git
+cd /gitlab-elasticsearch-indexer
 make
 sudo make install
 ```
@@ -97,8 +107,11 @@ Once installed, enable it under your instance's elasticsearch settings explained
 
 Elasticsearch requires additional resources in excess of those documented in the
 [GitLab system requirements](../install/requirements.md). These will vary by
-installation size, but you should ensure **at least** an additional 8 GiB of RAM
+installation size, but you should ensure **at least** an additional **8 GiB of RAM**
 for each Elasticsearch node, per the [official guidelines](https://www.elastic.co/guide/en/elasticsearch/guide/current/hardware.html).
+
+Keep in mind, this is the **minimum requirements** as per ElasticSearch. For
+production instances, they recommend considerably more resources.
 
 Storage requirements also vary based on installation side, but as a rule of
 thumb, you should allocate the total size of your production database, **plus**
@@ -131,22 +144,13 @@ To disable the Elasticsearch integration:
 1. Find the 'Elasticsearch' section and uncheck 'Search with Elasticsearch enabled'
    and 'Elasticsearch indexing'
 1. Click **Save** for the changes to take effect
+1. [Optional] Delete the existing index by running the command `sudo gitlab-rake gitlab:elastic:delete_index`
 
 ## Adding GitLab's data to the Elasticsearch index
 
 ### Indexing small instances (database size less than 500 MiB, size of repos less than 5 GiB)
 
-Configure Elasticsearch's host and port in **Admin > Settings**. Then create empty indexes using one of the following commands:
-
-```sh
-# Omnibus installations
-sudo gitlab-rake gitlab:elastic:create_empty_index
-
-# Installations from source
-bundle exec rake gitlab:elastic:create_empty_index RAILS_ENV=production
-```
-
-Then enable Elasticsearch indexing and run repository indexing tasks:
+Configure Elasticsearch's host and port in **Admin > Settings**. Then use the index the data using one of the following commands:
 
 ```sh
 # Omnibus installations
@@ -156,9 +160,14 @@ sudo gitlab-rake gitlab:elastic:index
 bundle exec rake gitlab:elastic:index RAILS_ENV=production
 ```
 
-Enable Elasticsearch search.
+After it completes the indexing process, enable Elasticsearch search.
 
 ### Indexing large instances
+
+WARNING: **Warning**:
+Performing asynchronous indexing, as this will describe, will generate a lot of sidekiq jobs.
+Make sure to prepare for this task by either [Horizontally Scaling](../administration/high_availability#basic-scaling)
+or creating [extra sidekiq processes](../administration/operations/extra_sidekiq_processes.md)
 
 NOTE: **Note**:
 After indexing the repositories asynchronously, you MUST index the database to be able to search.
@@ -315,6 +324,56 @@ curl --request POST 'http://localhost:9200/_forcemerge?max_num_segments=5'
 ```
 
 Enable Elasticsearch search in **Admin > Settings**. That's it. Enjoy it!
+
+## GitLab ElasticSearch Rake Tasks
+
+There are several rake tasks available to you via the command line:
+
+* [sudo gitlab-rake gitlab:elastic:index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L4)
+  * This is a wrapper task. It does the following:
+    * `sudo gitlab-rake gitlab:elastic:create_empty_index`
+    * `sudo gitlab-rake gitlab:elastic:clear_index_status`
+    * `sudo gitlab-rake gitlab:elastic:index_wikis`
+    * `sudo gitlab-rake gitlab:elastic:index_database`
+    * `sudo gitlab-rake gitlab:elastic:index_repositories`
+* [sudo gitlab-rake gitlab:elastic:index_repositories_async](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L13)
+  * This iterates over all projects and places them in batches. It then sends these batches to the background via sidekiq jobs to be indexed.
+* [sudo gitlab-rake gitlab:elastic:index_repositories_status](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L25)
+  * This determines the overall status of the indexing. It is done by counting the total number of indexed projects, dividing by a count of the total number of projects, then mulitplying by 100.
+* [sudo gitlab-rake gitlab:elastic:index_repositories](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L34)
+  * This iterates over all projects and places them in batches. It then performs an indexing on said batches synchronously.
+* [sudo gitlab-rake gitlab:elastic:index_wikis](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L44)
+  * Iterates over every project, determines if said project contains wiki data, and then indexes the blobs (content) of said wiki data.
+* [sudo gitlab-rake gitlab:elastic:index_database](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L88)
+  * This is a [rake multitask](https://www.rubydoc.info/github/ruby/rake/Rake/MultiTask). It does the following:
+    * `sudo gitlab-rake gitlab:elastic:index_projects`
+    * `sudo gitlab-rake gitlab:elastic:index_issues`
+    * `sudo gitlab-rake gitlab:elastic:index_merge_requests`
+    * `sudo gitlab-rake gitlab:elastic:index_snippets`
+    * `sudo gitlab-rake gitlab:elastic:index_notes`
+    * `sudo gitlab-rake gitlab:elastic:index_milestones`
+* [sudo gitlab-rake gitlab:elastic:create_empty_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L90)
+  * This generates an empty index on the ElasticSearch side.
+* [sudo gitlab-rake gitlab:elastic:clear_index_status](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L97)
+  * This deletes all instances of IndexStatus for all projects.
+* [sudo gitlab-rake gitlab:elastic:delete_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L103)
+  * This removes the GitLab index on the ElasticSearch instance.
+* [sudo gitlab-rake gitlab:elastic:recreate_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L109)
+  * Does the same thing as `sudo gitlab-rake gitlab:elastic:create_empty_index`
+* [sudo gitlab-rake gitlab:elastic:add_feature_visibility_levels_to_project](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L115)
+  * Adds visibility information to the indices for projects.
+* [sudo gitlab-rake gitlab:elastic:index_projects](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
+  * Performs an ElasticSearch import that indexes projects data
+* [sudo gitlab-rake gitlab:elastic:index_issues](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
+  * Performs an ElasticSearch import that indexes issues data
+* [sudo gitlab-rake gitlab:elastic:index_merge_requests](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
+  * Performs an ElasticSearch import that indexes merge requests data
+* [sudo gitlab-rake gitlab:elastic:index_snippets](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
+  * Performs an ElasticSearch import that indexes the snippets data
+* [sudo gitlab-rake gitlab:elastic:index_notes](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
+  * Performs an ElasticSearch import that indexes the notes data
+* [sudo gitlab-rake gitlab:elastic:index_milestones](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
+  * Performs an ElasticSearch import that indexes the milestones data
 
 ## Tuning
 

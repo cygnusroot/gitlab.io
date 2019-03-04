@@ -375,6 +375,60 @@ There are several rake tasks available to you via the command line:
 * [sudo gitlab-rake gitlab:elastic:index_milestones](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
   * Performs an ElasticSearch import that indexes the milestones data.
 
+### Environment Variables
+
+In addition to the rake tasks, there are some environment variables that can be used to modify the procees:
+
+| Environemnt Variable | Data Type | What it does                                                                |
+| -------------------- |:---------:| --------------------------------------------------------------------------- |
+| BATCH                | Integer   | Modifies the size of the indexing batch (default 300)                       |
+| UPDATE_INDEX         | Boolean   | Tells the indexer to overwrite any existing index data                      |
+| ID_TO                | Integer   | Tells the indexer to only index projects less than or equal to the value    |
+| ID_FROM              | Integer   | Tells the indexer to only index projects greater than or equal to the value |
+
+#### Batching
+
+The ability to apply batching makes the indexer run more efficently. The default
+size of a batch is 300, which may or may not be ideal for your setup. Depending
+on the resources available to your GitLab instance (sidekiq) and your ElasticSearch
+instance (RAM, CPU), you may be able to increase or decrease the batch size for
+more efficiency.
+
+* The larger the batch size is, the less sidekiq jobs and indexing requests get created.
+* The larger the batch size is, the more time and RAM it takes to process.
+* The smaller the batch size, the more sidekiq jobs and indexing requests get created.
+* The smaller the batch size, the more CPU gets utilized.
+
+Finding the ideal size can be tricky, and will vary from user to user. Generally
+speaking, if the default is not ideal for you, try reducing it to somewhere in
+the 50-150 range (for bigger sized repos) or 450-600 range (for many small sized repos).
+
+#### Indexing a specific project
+
+Because the `ID_TO` and `ID_FROM` environment variables are use the `or equal to` comparison, you can index only one project by using both this variables with the same project ID number:
+
+```sh
+root@git:~# sudo gitlab-rake gitlab:elastic:index_repositories ID_TO=5 ID_FROM=5
+Indexing project repositories...I, [2019-03-04T21:27:03.083410 #3384]  INFO -- : Indexing GitLab User / test (ID=33)...
+I, [2019-03-04T21:27:05.215266 #3384]  INFO -- : Indexing GitLab User / test (ID=33) is done!
+```
+
+## ElasticSearch Index Scopes
+
+When performing a search, the GitLab index will use the following scopes:
+
+| Scope Name     | What it searches       |
+| -------------- | ---------------------- |
+| commits        | Commit data            |
+| projects       | Project data (default) |
+| blobs          | Code                   |
+| issues         | Issue data             |
+| merge_requests | Merge Request data     |
+| milestones     | Milestone data         |
+| notes          | Note data              |
+| snippets       | Snippet data           |
+| wiki_blobs     | Wiki contents          |
+
 ## Tuning
 
 ### Deleted documents
@@ -420,10 +474,26 @@ Here are some common pitfalls and how to overcome them:
 - **I indexed all the repositories but I can't find anything**
 
     Make sure you indexed all the database data [as stated above](#adding-gitlabs-data-to-the-elasticsearch-index).
+    
+    Beyond that, check via the [ElasticSearch Search API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html) to see if the data shows up on the ElasticSearch side.
+    
+    If it shows up via the [ElasticSearch Search API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html), check that it shows up via the rails console (`sudo gitlab-rails console`):
+    
+    ```ruby
+    u = User.find_by_username('your-username')
+    s = SearchService.new(u, {:search => 'search_term', :scope => ‘blobs’})
+    pp s.search_objects.to_a
+    ```
+    
+    See [ElasticSearch Index Scopes](elasticsearch.md#-elasticsearch-index-scopes) for more information on searching for specific types of data.
 
 - **I indexed all the repositories but then switched elastic search servers and now I can't find anything**
 
     You will need to re-run all the rake tasks to re-index the database, repositories, and wikis.
+    
+- **The index process is taking a very long time**
+
+    The more data present in your GitLab instance, the longer the indexing process takes. You might want to try adjusting the BATCH sizes for asynchronous indexing to help speed up the process.
 
 - **"Can't specify parent if no parent field has been configured"**
 

@@ -363,17 +363,17 @@ There are several rake tasks available to you via the command line:
 * [sudo gitlab-rake gitlab:elastic:add_feature_visibility_levels_to_project](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L115)
   * Adds visibility information to the indices for projects.
 * [sudo gitlab-rake gitlab:elastic:index_projects](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes projects data
+  * Performs an ElasticSearch import that indexes projects data.
 * [sudo gitlab-rake gitlab:elastic:index_issues](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes issues data
+  * Performs an ElasticSearch import that indexes issues data.
 * [sudo gitlab-rake gitlab:elastic:index_merge_requests](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes merge requests data
+  * Performs an ElasticSearch import that indexes merge requests data.
 * [sudo gitlab-rake gitlab:elastic:index_snippets](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes the snippets data
+  * Performs an ElasticSearch import that indexes the snippets data.
 * [sudo gitlab-rake gitlab:elastic:index_notes](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes the notes data
+  * Performs an ElasticSearch import that indexes the notes data.
 * [sudo gitlab-rake gitlab:elastic:index_milestones](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes the milestones data
+  * Performs an ElasticSearch import that indexes the milestones data.
 
 ## Tuning
 

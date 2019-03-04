@@ -3,7 +3,7 @@
 GitLab Enterprise Edition allows one to start an extra set of Sidekiq processes
 besides the default one. These processes can be used to consume a dedicated set
 of queues. This can be used to ensure certain queues always have dedicated
-workers, no matter the amount of jobs that need to be processed.
+workers, no matter the number of jobs that need to be processed.
 
 ---
 
@@ -16,10 +16,11 @@ setting in the `gitlab.rb` file.
 sidekiq_cluster['enable'] = true
 ```
 
-You will then specify how many additiona processes to create via `sidekiq-cluster`
+You will then specify how many additional processes to create via `sidekiq-cluster`
 as well as which queues for them to handle. This is done via the 
 `sidekiq_cluster['queue_groups']` setting. This is an array whose items contain
-which queues to process.
+which queues to process. Each item in the array will equate to one additional
+sidekiq process.
 
 As an example, to make additional sidekiq processes that process the 
 `elastic_indexer` and `mailers` queues, you would apply the following:
@@ -67,7 +68,7 @@ sidekiq_cluster['negate'] = true
 
 You can modify the concurrency of the additional sidekiq processes by adding the
 `sidekiq_cluster['concurrency']` option to your `gitlab.rb` file. Keep in mind,
-this normallywould not normally exceed the number of CPU cores available.
+this normally would not normally exceed the number of CPU cores available.
 
 ```ruby
 sidekiq_cluster['concurrency'] = 25
@@ -77,7 +78,7 @@ sidekiq_cluster['concurrency'] = 25
 
 To modify the check interval for the additional sidekiq processes, you would use
 the `sidekiq_cluster['interval']` option in the `gitlab.rb` file. This tells the
-additiona processes how often to check for enqueued jobs.
+additional processes how often to check for enqueued jobs.
 
 ```ruby
 sidekiq_cluster['interval'] = 5
@@ -131,12 +132,12 @@ you'd use the following:
 #### Monitoring
 
 The `sidekiq-cluster` command will not terminate once it has started the desired
-amount of Sidekiq processes. Instead the process will continue running and
+amount of Sidekiq processes. Instead, the process will continue running and
 forward any signals to the child processes. This makes it easy to stop all
 Sidekiq processes as you simply send a signal to the `sidekiq-cluster` process,
 instead of having to send it to the individual processes.
 
-If the `sidekiq-cluster` process crashes or recieves a `SIGKILL`, the child
+If the `sidekiq-cluster` process crashes or receives a `SIGKILL`, the child
 processes will terminate themselves after a few seconds. This ensures you don't
 end up with zombie Sidekiq processes.
 
@@ -161,7 +162,7 @@ file is written, but this can be changed by passing the `--pidfile` option to
 ```
 
 Keep in mind that the PID file will contain the PID of the `sidekiq-cluster`
-command, and not the PID(s) of the started Sidekiq processes.
+command and not the PID(s) of the started Sidekiq processes.
 
 #### Environment
 
@@ -211,4 +212,3 @@ Each process started using `sidekiq-cluster` (whether it be via command line or
 via the gitlab.rb file) starts with a number of threads that equals the number
 of queues, plus one spare thread. For example, a process that handles the
 "process_commit" and "post_receive" queues will use 3 threads in total.
-

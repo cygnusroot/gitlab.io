@@ -74,7 +74,7 @@ module EE
               include ::Gitlab::Config::Entry::Configurable
               include ::Gitlab::Config::Entry::Attributable
 
-              ALLOWED_KEYS = %i[triggered_by stage variables].freeze
+              ALLOWED_KEYS = %i[triggered_by stage].freeze
 
               validations do
                 validates :config, presence: true
@@ -90,9 +90,6 @@ module EE
               entry :stage, ::Gitlab::Ci::Config::Entry::Stage,
                 description: 'Pipeline stage this job will be executed into.'
 
-              entry :variables, ::Gitlab::Ci::Config::Entry::Variables,
-                description: 'Environment variables available for this job.'
-
               helpers(*ALLOWED_KEYS)
               attributes(*ALLOWED_KEYS)
 
@@ -103,8 +100,7 @@ module EE
               def value
                 { name: name,
                   triggered_by: triggered_by_value,
-                  stage: stage_value,
-                  variables: (variables_value if variables_defined?) }.compact
+                  stage: stage_value }.compact
               end
             end
 

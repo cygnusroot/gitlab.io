@@ -51,7 +51,7 @@ Once the processes are added via the `gitlab.rb` file, you can see
 them (as an admin) via the Background Jobs section of the Admin panel
 (`/admin/background_jobs`). 
 
-![Extra sidekiq processes](img/extra-sidekiq-processes.png)
+![Extra sidekiq processes](img/sidekiq-cluster.png)
 
 #### All Queues With Exceptions
 

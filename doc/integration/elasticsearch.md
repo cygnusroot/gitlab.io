@@ -382,7 +382,7 @@ In addition to the rake tasks, there are some environment variables that can be 
 | Environment Variable | Data Type | What it does                                                                |
 | -------------------- |:---------:| --------------------------------------------------------------------------- |
 | BATCH                | Integer   | Modifies the size of the indexing batch (default 300)                       |
-| UPDATE_INDEX         | Boolean   | Tells the indexer to overwrite any existing index data                      |
+| UPDATE_INDEX         | Boolean   | Tells the indexer to overwrite any existing index data (true|false)         |
 | ID_TO                | Integer   | Tells the indexer to only index projects less than or equal to the value    |
 | ID_FROM              | Integer   | Tells the indexer to only index projects greater than or equal to the value |
 
@@ -402,6 +402,12 @@ more efficiency.
 Finding the ideal size can be tricky, and will vary from user to user. Generally
 speaking, if the default is not ideal for you, try reducing it to somewhere in
 the 50-150 range (for bigger sized repos) or 450-600 range (for many small-sized repos).
+
+Example use:
+
+```sh
+sudo gitlab-rake gitlab:elastic:index_repositories_async BATCH=50
+```
 
 #### Indexing a specific project
 

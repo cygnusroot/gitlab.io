@@ -5,13 +5,94 @@ besides the default one. These processes can be used to consume a dedicated set
 of queues. This can be used to ensure certain queues always have dedicated
 workers, no matter the amount of jobs that need to be processed.
 
-## Starting Extra Processes
+---
+
+## Starting Extra Processes via gitlab.rb
+
+To enable `sidekiq-cluster`, you must apply the `sidekiq_cluster['enable'] = true`
+setting in the `gitlab.rb` file.
+
+```ruby
+sidekiq_cluster['enable'] = true
+```
+
+You will then specify how many additiona processes to create via `sidekiq-cluster`
+as well as which queues for them to handle. This is done via the 
+`sidekiq_cluster['queue_groups']` setting. This is an array whose items contain
+which queues to process.
+
+As an example, to make additional sidekiq processes that process the 
+`elastic_indexer` and `mailers` queues, you would apply the following:
+
+
+```ruby
+sidekiq_cluster['queue_groups'] = [
+  "elastic_indexer",
+  "mailers"
+]
+```
+
+To have an additional sidekiq process handle multiple queues, you simply put a
+comma after the first queue name and then put the next queue name:
+
+```ruby
+sidekiq_cluster['queue_groups'] = [
+  "elastic_indexer,elastic_commit_indexer",
+  "mailers"
+]
+```
+
+Keep in mind, all changes must be followed by reconfiguring your GitLab
+application via `sudo gitlab-ctl reconfigure`.
+
+#### Monitoring
+
+Once the processes are added via the `gitlab.rb` file, you can see
+them (as an admin) via the Background Jobs section of the Admin panel
+(`/admin/background_jobs`). 
+
+![Extra sidekiq processes](img/extra-sidekiq-processes.png)
+
+#### All Queues With Exceptions
+
+To have the additional sidekiq processes work on every queue EXCEPT the ones
+you list, you can use the `sidekiq_cluster['negate'] = true` option in the
+`gitlab.rb` file:
+
+```ruby
+sidekiq_cluster['negate'] = true
+```
+
+#### Limiting Concurrency
+
+You can modify the concurrency of the additional sidekiq processes by adding the
+`sidekiq_cluster['concurrency']` option to your `gitlab.rb` file. Keep in mind,
+this normallywould not normally exceed the number of CPU cores available.
+
+```ruby
+sidekiq_cluster['concurrency'] = 25
+```
+
+#### Modifying the Check Interval
+
+To modify the check interval for the additional sidekiq processes, you would use
+the `sidekiq_cluster['interval']` option in the `gitlab.rb` file. This tells the
+additiona processes how often to check for enqueued jobs.
+
+```ruby
+sidekiq_cluster['interval'] = 5
+```
+
+---
+
+## Starting Extra Processes via Command Line
 
 Starting extra Sidekiq processes can be done using the command
-`bin/sidekiq-cluster`. This command takes arguments using the following syntax:
+`/opt/gitlab/embedded/service/gitlab-rails/bin/sidekiq-cluster`. This command
+takes arguments using the following syntax:
 
 ```bash
-sidekiq-cluster [QUEUE,QUEUE,...] [QUEUE, ...]
+/opt/gitlab/embedded/service/gitlab-rails/bin/sidekiq-cluster [QUEUE,QUEUE,...] [QUEUE, ...]
 ```
 
 Each separate argument denotes a group of queues that have to be processed by a
@@ -29,14 +110,14 @@ For example, say you want to start 2 extra processes: one to process the
 done as follows:
 
 ```bash
-sidekiq-cluster process_commit post_receive
+/opt/gitlab/embedded/service/gitlab-rails/bin/sidekiq-cluster process_commit post_receive
 ```
 
 If you instead want to start one process processing both queues you'd use the
 following syntax:
 
 ```bash
-sidekiq-cluster process_commit,post_receive
+/opt/gitlab/embedded/service/gitlab-rails/bin/sidekiq-cluster process_commit,post_receive
 ```
 
 If you want to have one Sidekiq process process the "process_commit" and
@@ -44,16 +125,10 @@ If you want to have one Sidekiq process process the "process_commit" and
 you'd use the following:
 
 ```bash
-sidekiq-cluster process_commit,post_receive gitlab_shell
+/opt/gitlab/embedded/service/gitlab-rails/bin/sidekiq-cluster process_commit,post_receive gitlab_shell
 ```
 
-## Concurrency
-
-Each process started using `sidekiq-cluster` starts with a number of threads
-that equals the number of queues, plus one spare thread. For example, a process
-that processes "process_commit" and "post_receive" will use 3 threads in total.
-
-## Monitoring
+#### Monitoring
 
 The `sidekiq-cluster` command will not terminate once it has started the desired
 amount of Sidekiq processes. Instead the process will continue running and
@@ -75,26 +150,26 @@ process to terminate, then terminate itself. This removes the need for
 Instead you should make sure your supervisor restarts the `sidekiq-cluster`
 process whenever necessary.
 
-## PID Files
+#### PID Files
 
 The `sidekiq-cluster` command can store its PID in a file. By default no PID
 file is written, but this can be changed by passing the `--pidfile` option to
 `sidekiq-cluster`. For example:
 
 ```bash
-sidekiq-cluster --pidfile /var/run/gitlab/sidekiq_cluster.pid process_commit
+/opt/gitlab/embedded/service/gitlab-rails/bin/sidekiq-cluster --pidfile /var/run/gitlab/sidekiq_cluster.pid process_commit
 ```
 
 Keep in mind that the PID file will contain the PID of the `sidekiq-cluster`
 command, and not the PID(s) of the started Sidekiq processes.
 
-## Environment
+#### Environment
 
 The Rails environment can be set by passing the `--environment` flag to the
 `sidekiq-cluster` command, or by setting `RAILS_ENV` to a non-empty value. The
 default value is "development".
 
-## All Queues With Exceptions
+#### All Queues With Exceptions
 
 You're able to run all queues in `sidekiq_queues.yml` file on a single or
 multiple processes with exceptions using the `--negate` flag.
@@ -112,14 +187,14 @@ For multiple processes of all queues (except "process_commit" and "post_receive"
 sidekiq-cluster process_commit,post_receive process_commit,post_receive --negate
 ```
 
-## Limiting Concurrency
+#### Limiting Concurrency
 
 By default, `sidekiq-cluster` will spin up extra Sidekiq processes that use
 one thread per queue up to a maximum of 50. If you wish to change the cap, use
 the `-m N` option. For example, this would cap the maximum number of threads to 1:
 
 ```bash
-sidekiq-cluster process_commit,post_receive -m 1
+/opt/gitlab/embedded/service/gitlab-rails/bin/sidekiq-cluster process_commit,post_receive -m 1
 ```
 
 For each queue group, the concurrency factor will be set to min(number of
@@ -127,4 +202,13 @@ queues, N). Setting the value to 0 will disable the limit.
 
 Note that each thread requires a Redis connection, so adding threads may
 increase Redis latency and potentially cause client timeouts. See the [Sidekiq
-documentation about Redis](https://github.com/mperham/sidekiq/wiki/Using-Redis) for more details.
+documentation about Redis](https://github.com/mperham/sidekiq/wiki/Using-Redis)
+for more details.
+
+## Number of Threads
+
+Each process started using `sidekiq-cluster` (whether it be via command line or
+via the gitlab.rb file) starts with a number of threads that equals the number
+of queues, plus one spare thread. For example, a process that handles the
+"process_commit" and "post_receive" queues will use 3 threads in total.
+

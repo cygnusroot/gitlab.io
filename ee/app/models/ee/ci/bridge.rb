@@ -19,7 +19,11 @@ module EE
         state_machine :status do
           after_transition created: :pending do |bridge|
             bridge.run_after_commit do
-              bridge.schedule_downstream_pipeline!
+              if upstream_bridge?
+                bridge.success!
+              else
+                bridge.schedule_downstream_pipeline!
+              end
             end
           end
         end
@@ -34,7 +38,7 @@ module EE
       end
 
       def target_project_path
-        options&.dig(:trigger, :project)
+        downstream_project_path || upstream_project_path
       end
 
       def target_ref
@@ -43,6 +47,20 @@ module EE
 
       def downstream_variables
         yaml_variables.to_a.map { |hash| hash.except(:public) }
+      end
+
+      def upstream_bridge?
+        options&.has_key?(:triggered_by)
+      end
+
+      private
+
+      def downstream_project_path
+        options&.dig(:trigger, :project)
+      end
+
+      def upstream_project_path
+        options&.dig(:triggered_by, :project)
       end
     end
   end

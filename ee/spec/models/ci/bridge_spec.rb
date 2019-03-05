@@ -20,10 +20,28 @@ describe Ci::Bridge do
 
   describe 'state machine transitions' do
     context 'when it changes status from created to pending' do
-      it 'schedules downstream pipeline creation' do
-        expect(bridge).to receive(:schedule_downstream_pipeline!)
+      context 'when it is a downstream bridge' do
+        it 'schedules downstream pipeline creation' do
+          expect(bridge).to receive(:schedule_downstream_pipeline!)
 
-        bridge.enqueue!
+          bridge.enqueue!
+        end
+      end
+
+      context 'when it is an upstream bridge' do
+        let(:options) { { triggered_by: { project: 'other/project' } } }
+
+        it 'does not schedule a downstream pipeline creation' do
+          expect(bridge).not_to receive(:schedule_downstream_pipeline!)
+
+          bridge.enqueue!
+        end
+
+        it 'marks the bridge as successful' do
+          bridge.enqueue!
+
+          expect(bridge.status).to eq('success')
+        end
       end
     end
   end
@@ -41,11 +59,29 @@ describe Ci::Bridge do
       end
     end
 
-    context 'when trigger does not have project defined' do
-      let(:options) { { trigger: {} } }
+    context 'when triggered_by is defined' do
+      let(:options) { { triggered_by: { project: 'other/project' } } }
 
-      it 'returns nil' do
-        expect(bridge.target_project_path).to be_nil
+      it 'returns a full path of a project' do
+        expect(bridge.target_project_path).to eq 'other/project'
+      end
+    end
+
+    context 'when project is not defined' do
+      context 'when trigger is defined' do
+        let(:options) { { trigger: {} } }
+
+        it 'returns nil' do
+          expect(bridge.target_project_path).to be_nil
+        end
+      end
+
+      context 'when triggered_by is defined' do
+        let(:options) { { triggered_by: {} } }
+
+        it 'returns nil' do
+          expect(bridge.target_project_path).to be_nil
+        end
       end
     end
   end

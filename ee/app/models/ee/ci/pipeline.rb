@@ -105,6 +105,7 @@ module EE
           end
 
           after_transition running: :success do |pipeline|
+            next unless pipeline.default_branch?
             next if pipeline.project.downstream_projects.empty?
 
             pipeline.run_after_commit do

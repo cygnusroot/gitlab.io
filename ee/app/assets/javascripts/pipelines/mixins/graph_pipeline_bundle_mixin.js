@@ -3,19 +3,16 @@ import { __ } from '~/locale';
 
 export default {
   methods: {
-    requestExpandedPipelines(pipeline) {
-      this.mediator.store.toggleLoading(pipeline);
-      this.mediator.poll.stop();
-    },
     getExpandedPipelines(pipeline) {
       this.mediator.service
         .getPipeline(this.mediator.getExpandedParameters())
         .then(response => {
           this.mediator.store.toggleLoading(pipeline);
           this.mediator.store.storePipeline(response.data);
-          this.mediator.poll.restart({ data: this.mediator.getExpandedParameters() });
+          this.mediator.poll.enable({ data: this.mediator.getExpandedParameters() });
         })
         .catch(() => {
+          this.mediator.store.toggleLoading(pipeline);
           flash(__('An error occurred while fetching the pipeline.'));
         });
     },
@@ -33,22 +30,15 @@ export default {
     clickPipeline(parentPipeline, pipeline, openMethod, closeMethod) {
       if (!pipeline.isExpanded) {
         this.mediator.store[openMethod](parentPipeline, pipeline);
-
-        this.requestExpandedPipelines(pipeline);
-
-        // update the request data with the clicked pipeline
-        this.mediator.store.addExpandedPipelineToRequestData(pipeline.id);
+        this.mediator.store.toggleLoading(pipeline);
+        this.mediator.poll.stop();
 
         this.getExpandedPipelines(pipeline);
       } else {
         this.mediator.store[closeMethod](pipeline);
+        this.mediator.poll.stop();
 
-        this.requestExpandedPipelines(pipeline);
-
-        // remove the expanded pipeline
-        this.mediator.store.removeExpandedPipelineToRequestData(pipeline.id);
-
-        this.getExpandedPipelines(pipeline);
+        this.mediator.poll.enable({ data: this.mediator.getExpandedParameters() });
       }
     },
     clickTriggeredByPipeline(parentPipeline, pipeline) {

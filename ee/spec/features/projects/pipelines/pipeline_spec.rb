@@ -35,7 +35,7 @@ describe 'Pipeline', :js do
       end
 
       context 'expands the upstream pipeline on click' do
-        it 'should expand the upstream on click'do
+        it 'should expand the upstream on click' do
           subject
 
           page.find(".js-pipeline-expand-#{upstream_pipeline.id}").click
@@ -43,9 +43,14 @@ describe 'Pipeline', :js do
           expect(page).to have_selector(".js-upstream-pipeline-#{upstream_pipeline.id}")
         end
 
-        it 'should close the expanded upstream on click'do
+        it 'should close the expanded upstream on click' do
           subject
 
+          # open
+          page.find(".js-pipeline-expand-#{upstream_pipeline.id}").click
+          wait_for_requests
+
+          # close
           page.find(".js-pipeline-expand-#{upstream_pipeline.id}").click
 
           expect(page).not_to have_selector(".js-upstream-pipeline-#{upstream_pipeline.id}")
@@ -60,18 +65,23 @@ describe 'Pipeline', :js do
       end
 
       context 'expands the downstream pipeline on click' do
-        it 'should expand the downstream on click'do
+        it 'should expand the downstream on click' do
           subject
 
-          page.find(".js-pipeline-expand-#{downstream_pipeline.id}")
+          page.find(".js-pipeline-expand-#{downstream_pipeline.id}").click
           wait_for_requests
           expect(page).to have_selector(".js-downstream-pipeline-#{downstream_pipeline.id}")
         end
 
-        it 'should close the expanded downstream on click'do
+        it 'should close the expanded downstream on click' do
           subject
 
-          page.find(".js-pipeline-expand-#{downstream_pipeline.id}")
+          # open
+          page.find(".js-pipeline-expand-#{downstream_pipeline.id}").click
+          wait_for_requests
+
+          # close
+          page.find(".js-pipeline-expand-#{downstream_pipeline.id}").click
 
           expect(page).not_to have_selector(".js-downstream-pipeline-#{downstream_pipeline.id}")
         end

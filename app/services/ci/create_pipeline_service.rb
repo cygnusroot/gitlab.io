@@ -15,6 +15,7 @@ module Ci
                 Gitlab::Ci::Pipeline::Chain::Limit::Size,
                 Gitlab::Ci::Pipeline::Chain::Populate,
                 Gitlab::Ci::Pipeline::Chain::Create,
+                Gitlab::Ci::Pipeline::Chain::PopulateUpstream,
                 Gitlab::Ci::Pipeline::Chain::Limit::Activity].freeze
 
     def execute(source, ignore_skip_ci: false, save_on_errors: true, trigger_request: nil, schedule: nil, merge_request: nil, **options, &block)

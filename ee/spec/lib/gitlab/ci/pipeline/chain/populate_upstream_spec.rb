@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe ::Gitlab::Ci::Pipeline::Chain::Create do
+describe ::Gitlab::Ci::Pipeline::Chain::PopulateUpstream do
   let(:project) { create(:project, :repository) }
   let(:user) { create(:user) }
   let(:pipeline) { build(:ci_pipeline, project: project, ref: 'master') }
@@ -30,6 +30,10 @@ describe ::Gitlab::Ci::Pipeline::Chain::Create do
           expect(project.reload.upstream_projects).to be_one
           expect(project.reload.upstream_projects.first).to eq(upstream_project)
         end
+
+        it 'does not break the chain' do
+          expect(step.break?).to be false
+        end
       end
     end
 
@@ -41,6 +45,10 @@ describe ::Gitlab::Ci::Pipeline::Chain::Create do
 
         expect(project.upstream_projects).to be_empty
       end
+
+      it 'does not break the chain' do
+        expect(step.break?).to be false
+      end
     end
   end
 
@@ -51,6 +59,10 @@ describe ::Gitlab::Ci::Pipeline::Chain::Create do
       step.perform!
 
       expect(project.upstream_projects).to be_empty
+    end
+
+    it 'does not break the chain' do
+      expect(step.break?).to be false
     end
   end
 end

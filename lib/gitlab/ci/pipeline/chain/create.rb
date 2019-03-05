@@ -21,5 +21,3 @@ module Gitlab
     end
   end
 end
-
-Gitlab::Ci::Pipeline::Chain::Create.prepend(EE::Gitlab::Ci::Pipeline::Chain::Create)

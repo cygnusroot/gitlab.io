@@ -5,7 +5,7 @@ module EE
     module Ci
       module Pipeline
         module Chain
-          module Create
+          module PopulateUpstream
             extend ::Gitlab::Utils::Override
 
             override :perform!
@@ -17,8 +17,11 @@ module EE
                   ::Project.find_by_full_path(bridge.target_project_path) if bridge.upstream_bridge?
                 end.compact
               end
+            end
 
-              super
+            override :break?
+            def break?
+              false
             end
 
             private

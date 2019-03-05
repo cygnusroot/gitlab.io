@@ -10,6 +10,10 @@ module Ci
       @target_project = target_project
       @target_user = target_user
 
+      unless cross_project_pipelines_enabled?
+        raise DownstreamPipelineCreationError, 'Cross project pipelines are not enabled'
+      end
+
       unless can_create_cross_pipeline?
         raise DownstreamPipelineCreationError, 'User does not have sufficient permissions'
       end
@@ -18,6 +22,11 @@ module Ci
     end
 
     private
+
+    def cross_project_pipelines_enabled?
+      project.feature_available?(:cross_project_pipelines) &&
+        target_project.feature_available?(:cross_project_pipelines)
+    end
 
     def can_create_cross_pipeline?
       can?(current_user, :update_pipeline, project) &&

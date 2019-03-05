@@ -31,7 +31,7 @@ describe Ci::CreateDownstreamProjectsPipelineWorker do
       end
 
       context 'when downstream projects do not exist' do
-        it 'does nothing' do
+        it 'does not call the pipeline creation service' do
           expect(::Ci::CreateDownstreamProjectPipelineService)
             .not_to receive(:new)
 
@@ -41,7 +41,7 @@ describe Ci::CreateDownstreamProjectsPipelineWorker do
     end
 
     context 'when pipeline does not exist' do
-      it 'does nothing' do
+      it 'does not call the pipeline creation service' do
         expect(::Ci::CreateDownstreamProjectPipelineService)
           .not_to receive(:new)
 

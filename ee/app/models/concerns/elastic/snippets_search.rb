@@ -32,6 +32,14 @@ module Elastic
         data
       end
 
+      def use_elasticsearch?
+        global_indexing = ::Gitlab::CurrentSettings.elasticsearch_indexing?
+
+        return global_indexing if ::Feature.enabled?(:global_elasticsearch_search, default_enabled: true)
+
+        global_indexing && self.project&.use_elasticsearch?
+      end
+
       def self.elastic_search(query, options: {})
         query_hash = basic_query_hash(%w(title file_name), query)
 

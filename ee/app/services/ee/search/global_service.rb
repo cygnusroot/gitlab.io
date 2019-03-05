@@ -8,11 +8,16 @@ module EE
 
       override :execute
       def execute
-        if ::Gitlab::CurrentSettings.elasticsearch_search?
+        if use_elasticsearch?
           ::Gitlab::Elastic::SearchResults.new(current_user, params[:search], elastic_projects, elastic_global)
         else
           super
         end
+      end
+
+      def use_elasticsearch?
+        ::Gitlab::CurrentSettings.elasticsearch_search? &&
+          ::Feature.enabled?(:global_elasticsearch_search, default_enabled: true)
       end
 
       def elastic_projects

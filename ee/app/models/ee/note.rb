@@ -15,7 +15,7 @@ module EE
     end
 
     def searchable?
-      !system
+      !system && super
     end
 
     def for_epic?

@@ -5,6 +5,64 @@ describe Snippet, :elastic do
     stub_ee_application_setting(elasticsearch_search: true, elasticsearch_indexing: true)
   end
 
+  context 'when global searching feature flag is off' do
+    set(:project) { create :project, name: 'test1' }
+    set(:snippet) { create :snippet, project: project}
+
+    before do
+      # Make sure all features are not enabled by default
+      allow(Feature).to receive(:enabled?).and_return(false)
+      stub_feature_flags(global_elasticsearch_search: false)
+    end
+
+    context 'when the project is not enabled specifically' do
+      context '#searchable?' do
+        it 'returns false' do
+          expect(snippet.searchable?).to be_falsey
+        end
+      end
+    end
+
+    context 'when a project is enabled specifically' do
+      before do
+        stub_feature_flags(elasticsearch_indexing: { enabled: true, thing: project })
+      end
+
+      context '#searchable?' do
+        it 'returns true' do
+          expect(snippet.searchable?).to be_truthy
+        end
+      end
+    end
+
+    context 'when a group is enabled' do
+      set(:group) { create(:group) }
+
+      before do
+        stub_feature_flags(elasticsearch_indexing: { enabled: true, thing: group })
+      end
+
+      context '#searchable?' do
+        it 'returns true' do
+          project = create :project, name: 'test1', group: group
+          snippet = create :snippet, project: project
+
+          expect(snippet.searchable?).to be_truthy
+        end
+      end
+    end
+
+    context 'when a snippet is not part of a group' do
+      context '#searchable?' do
+        it 'returns falsey' do
+          snippet = create :snippet
+
+          expect(snippet.searchable?).to be_falsey
+        end
+      end
+    end
+  end
+
   context 'searching snippets by code' do
     let!(:author) { create(:user) }
     let!(:project) { create(:project) }

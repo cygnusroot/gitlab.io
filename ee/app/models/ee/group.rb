@@ -189,6 +189,15 @@ module EE
       end
     end
 
+    def use_elasticsearch?
+      global_indexing = ::Gitlab::CurrentSettings.elasticsearch_indexing?
+
+      return global_indexing if ::Feature.enabled?(:global_elasticsearch_search, default_enabled: true)
+
+      global_indexing &&
+        ::Feature.enabled?(:elasticsearch_indexing, self)
+    end
+
     private
 
     def custom_project_templates_group_allowed

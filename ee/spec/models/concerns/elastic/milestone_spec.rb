@@ -5,6 +5,54 @@ describe Milestone, :elastic do
     stub_ee_application_setting(elasticsearch_search: true, elasticsearch_indexing: true)
   end
 
+  context 'when global searching feature flag is off' do
+    set(:project) { create :project, name: 'test1' }
+    set(:milestone) { create :milestone, project: project}
+
+    before do
+      # Make sure all features are not enabled by default
+      allow(Feature).to receive(:enabled?).and_return(false)
+      stub_feature_flags(global_elasticsearch_search: false)
+    end
+
+    context 'when the project is not enabled specifically' do
+      context '#searchable?' do
+        it 'returns false' do
+          expect(milestone.searchable?).to be_falsey
+        end
+      end
+    end
+
+    context 'when a project is enabled specifically' do
+      before do
+        stub_feature_flags(elasticsearch_indexing: { enabled: true, thing: project })
+      end
+
+      context '#searchable?' do
+        it 'returns true' do
+          expect(milestone.searchable?).to be_truthy
+        end
+      end
+    end
+
+    context 'when a group is enabled' do
+      set(:group) { create(:group) }
+
+      before do
+        stub_feature_flags(elasticsearch_indexing: { enabled: true, thing: group })
+      end
+
+      context '#searchable?' do
+        it 'returns true' do
+          project = create :project, name: 'test1', group: group
+          milestone = create :milestone, project: project
+
+          expect(milestone.searchable?).to be_truthy
+        end
+      end
+    end
+  end
+
   it "searches milestones" do
     project = create :project
 

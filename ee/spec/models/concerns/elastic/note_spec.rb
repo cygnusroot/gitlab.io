@@ -5,6 +5,68 @@ describe Note, :elastic do
     stub_ee_application_setting(elasticsearch_search: true, elasticsearch_indexing: true)
   end
 
+  context 'when global searching feature flag is off' do
+    set(:project) { create :project, name: 'test1' }
+    set(:note) { create :note, project: project}
+
+    before do
+      # Make sure all features are not enabled by default
+      allow(Feature).to receive(:enabled?).and_return(false)
+      stub_feature_flags(global_elasticsearch_search: false)
+    end
+
+    context 'when the project is not enabled specifically' do
+      context '#searchable?' do
+        it 'returns false' do
+          expect(note.searchable?).to be_falsey
+        end
+      end
+    end
+
+    context 'when a project is enabled specifically' do
+      before do
+        stub_feature_flags(elasticsearch_indexing: { enabled: true, thing: project })
+      end
+
+      context '#searchable?' do
+        it 'returns true' do
+          expect(note.searchable?).to be_truthy
+        end
+
+        it 'also works on diff notes' do
+          notes = []
+          notes << create(:diff_note_on_merge_request, note: "term")
+          notes << create(:diff_note_on_commit, note: "term")
+          notes << create(:legacy_diff_note_on_merge_request, note: "term")
+          notes << create(:legacy_diff_note_on_commit, note: "term")
+
+          notes.each do |note|
+            stub_feature_flags(elasticsearch_indexing: { enabled: true, thing: note.noteable.project })
+
+            expect(note.searchable?).to be_truthy
+          end
+        end
+      end
+    end
+
+    context 'when a group is enabled' do
+      set(:group) { create(:group) }
+
+      before do
+        stub_feature_flags(elasticsearch_indexing: { enabled: true, thing: group })
+      end
+
+      context '#searchable?' do
+        it 'returns true' do
+          project = create :project, name: 'test1', group: group
+          note = create :note, project: project
+
+          expect(note.searchable?).to be_truthy
+        end
+      end
+    end
+  end
+
   it "searches notes" do
     issue = create :issue
 

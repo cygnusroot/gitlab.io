@@ -57,7 +57,7 @@ namespace :gitlab do
       projects = apply_project_filters(Project.with_wiki_enabled)
 
       projects.find_each do |project|
-        unless project.wiki.empty?
+        unless project.wiki.empty? || !project.use_elasticsearch?
           puts "Indexing wiki of #{project.full_name}..."
 
           begin

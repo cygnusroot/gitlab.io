@@ -5,6 +5,30 @@ describe ElasticBatchProjectIndexerWorker do
   let(:projects) { create_list(:project, 2) }
 
   describe '#perform' do
+    before do
+      stub_ee_application_setting(elasticsearch_indexing: true)
+    end
+
+    context 'with elasticsearch only enabled for a particular project' do
+      before do
+        # Get rid of the global enablement of all feature flags, otherwise can't enable per-project
+        allow(Feature).to receive(:enabled?) { false }
+        stub_feature_flags(
+          global_elasticsearch_search: false,
+          elasticsearch_indexing: { enabled: true, thing: projects.first }
+        )
+      end
+
+      it 'only indexes the enabled project' do
+        projects.each { |project| expect_index(project, false).and_call_original }
+
+        expect(Gitlab::Elastic::Indexer).to receive(:new).with(projects.first).and_return(double(run: true))
+        expect(Gitlab::Elastic::Indexer).not_to receive(:new).with(projects.last)
+
+        worker.perform(projects.first.id, projects.last.id)
+      end
+    end
+
     it 'runs the indexer for projects in the batch range' do
       projects.each { |project| expect_index(project, false) }
 

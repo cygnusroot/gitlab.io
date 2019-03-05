@@ -4,6 +4,7 @@ require 'spec_helper'
 
 describe Gitlab::Email::Handler::EE::ServiceDeskHandler do
   include_context :email_shared_context
+
   before do
     stub_incoming_email_setting(enabled: true, address: "incoming+%{key}@appmail.adventuretime.ooo")
     stub_config_setting(host: 'localhost')
@@ -23,52 +24,52 @@ describe Gitlab::Email::Handler::EE::ServiceDeskHandler do
       allow(::EE::Gitlab::ServiceDesk).to receive(:enabled?).with(project: project).and_return(true)
     end
 
-    context 'when everything is fine' do
-      shared_examples 'a new issue request' do
-        it 'sends thank you the email and creates issue' do
-          setup_attachment
+    shared_examples 'a new issue request' do
+      it 'sends thank you email and creates issue' do
+        setup_attachment
 
-          expect(Notify).to receive(:service_desk_thank_you_email).with(kind_of(Integer))
+        expect(Notify).to receive(:service_desk_thank_you_email).with(kind_of(Integer))
 
-          expect { receiver.execute }.to change { Issue.count }.by(1)
+        expect { receiver.execute }.to change { Issue.count }.by(1)
 
-          new_issue = Issue.last
+        new_issue = Issue.last
 
-          expect(new_issue.author).to eql(User.support_bot)
-          expect(new_issue.confidential?).to be true
-          expect(new_issue.all_references.all).to be_empty
-          expect(new_issue.title).to eq("Service Desk (from jake@adventuretime.ooo): The message subject! @all")
-          expect(new_issue.description).to eq("Service desk stuff!\n\n```\na = b\n```\n\n![image](uploads/image.png)")
-        end
+        expect(new_issue.author).to eql(User.support_bot)
+        expect(new_issue.confidential?).to be true
+        expect(new_issue.all_references.all).to be_empty
+        expect(new_issue.title).to eq("Service Desk (from jake@adventuretime.ooo): The message subject! @all")
+        expect(new_issue.description).to eq("Service desk stuff!\n\n```\na = b\n```\n\n![image](uploads/image.png)")
       end
+    end
 
+    context 'when everything is fine' do
       it_behaves_like 'a new issue request'
 
-      context "creates a new issue with legacy email address" do
+      context 'with legacy incoming email address' do
         let(:email_raw) { fixture_file('emails/service_desk_legacy.eml', dir: 'ee') }
 
         it_behaves_like 'a new issue request'
       end
     end
 
-    context 'when email key' do
+    describe '#can_handle?' do
       let(:mail) { Mail::Message.new(email_raw) }
 
-      it "matches the new format" do
+      it 'handles the new email key format' do
         handler = described_class.new(mail, "h5bp-html5-boilerplate-#{project.project_id}-issue-")
 
         expect(handler.instance_variable_get(:@project_id).to_i).to eq project.project_id
         expect(handler.can_handle?).to be_truthy
       end
 
-      it "matches the legacy format" do
+      it 'handles the legacy email key format' do
         handler = described_class.new(mail, "h5bp/html5-boilerplate")
 
         expect(handler.instance_variable_get(:@project_path)).to eq 'h5bp/html5-boilerplate'
         expect(handler.can_handle?).to be_truthy
       end
 
-      it "doesn't match either format" do
+      it "doesn't handle invalid email key" do
         handler = described_class.new(mail, "h5bp-html5-boilerplate-invalid")
 
         expect(handler.can_handle?).to be_falsey
@@ -113,7 +114,7 @@ describe Gitlab::Email::Handler::EE::ServiceDeskHandler do
         allow(::EE::Gitlab::ServiceDesk).to receive(:enabled?).and_return(false)
       end
 
-      it 'does not create an issue or send email' do
+      it 'does not create an issue or send an email' do
         expect(Notify).not_to receive(:service_desk_thank_you_email)
 
         expect { receiver.execute rescue nil }.not_to change { Issue.count }
@@ -123,21 +124,7 @@ describe Gitlab::Email::Handler::EE::ServiceDeskHandler do
     context 'when the email is forwarded through an alias' do
       let(:email_raw) { email_fixture('emails/service_desk_forwarded.eml', dir: 'ee') }
 
-      it 'sends thank you the email and creates issue' do
-        setup_attachment
-
-        expect(Notify).to receive(:service_desk_thank_you_email).with(kind_of(Integer))
-
-        expect { receiver.execute }.to change { Issue.count }.by(1)
-
-        new_issue = Issue.last
-
-        expect(new_issue.author).to eql(User.support_bot)
-        expect(new_issue.confidential?).to be true
-        expect(new_issue.all_references.all).to be_empty
-        expect(new_issue.title).to eq("Service Desk (from jake@adventuretime.ooo): The message subject! @all")
-        expect(new_issue.description).to eq("Service desk stuff!\n\n```\na = b\n```\n\n![image](uploads/image.png)")
-      end
+      it_behaves_like 'a new issue request'
     end
   end
 

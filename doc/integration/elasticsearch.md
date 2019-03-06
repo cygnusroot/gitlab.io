@@ -64,7 +64,7 @@ sudo apt install libicu-dev
 
 ##### CentOS / RHEL
 
-TO install on CentOS or RHEL, run:
+To install on CentOS or RHEL, run:
 
 ```sh
 sudo yum install libicu-devel
@@ -329,78 +329,78 @@ Enable Elasticsearch search in **Admin > Settings**. That's it. Enjoy it!
 
 There are several rake tasks available to you via the command line:
 
-* [sudo gitlab-rake gitlab:elastic:index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L4)
-  * This is a wrapper task. It does the following:
-    * `sudo gitlab-rake gitlab:elastic:create_empty_index`
-    * `sudo gitlab-rake gitlab:elastic:clear_index_status`
-    * `sudo gitlab-rake gitlab:elastic:index_wikis`
-    * `sudo gitlab-rake gitlab:elastic:index_database`
-    * `sudo gitlab-rake gitlab:elastic:index_repositories`
-* [sudo gitlab-rake gitlab:elastic:index_repositories_async](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L13)
-  * This iterates over all projects and places them in batches. It then sends these batches to the background via sidekiq jobs to be indexed.
-* [sudo gitlab-rake gitlab:elastic:index_repositories_status](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L25)
-  * This determines the overall status of the indexing. It is done by counting the total number of indexed projects, dividing by a count of the total number of projects, then multiplying by 100.
-* [sudo gitlab-rake gitlab:elastic:index_repositories](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L34)
-  * This iterates over all projects and places them in batches. It then performs indexing on said batches synchronously.
-* [sudo gitlab-rake gitlab:elastic:index_wikis](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L44)
-  * Iterates over every project, determines if said project contains wiki data, and then indexes the blobs (content) of said wiki data.
-* [sudo gitlab-rake gitlab:elastic:index_database](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L88)
-  * This is a [rake multitask](https://www.rubydoc.info/github/ruby/rake/Rake/MultiTask). It does the following:
-    * `sudo gitlab-rake gitlab:elastic:index_projects`
-    * `sudo gitlab-rake gitlab:elastic:index_issues`
-    * `sudo gitlab-rake gitlab:elastic:index_merge_requests`
-    * `sudo gitlab-rake gitlab:elastic:index_snippets`
-    * `sudo gitlab-rake gitlab:elastic:index_notes`
-    * `sudo gitlab-rake gitlab:elastic:index_milestones`
-* [sudo gitlab-rake gitlab:elastic:create_empty_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L90)
-  * This generates an empty index on the ElasticSearch side.
-* [sudo gitlab-rake gitlab:elastic:clear_index_status](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L97)
-  * This deletes all instances of IndexStatus for all projects.
-* [sudo gitlab-rake gitlab:elastic:delete_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L103)
-  * This removes the GitLab index on the ElasticSearch instance.
-* [sudo gitlab-rake gitlab:elastic:recreate_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L109)
-  * Does the same thing as `sudo gitlab-rake gitlab:elastic:create_empty_index`
-* [sudo gitlab-rake gitlab:elastic:add_feature_visibility_levels_to_project](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L115)
-  * Adds visibility information to the indices for projects.
-* [sudo gitlab-rake gitlab:elastic:index_projects](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes projects data.
-* [sudo gitlab-rake gitlab:elastic:index_issues](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes issues data.
-* [sudo gitlab-rake gitlab:elastic:index_merge_requests](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes merge requests data.
-* [sudo gitlab-rake gitlab:elastic:index_snippets](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes the snippets data.
-* [sudo gitlab-rake gitlab:elastic:index_notes](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes the notes data.
-* [sudo gitlab-rake gitlab:elastic:index_milestones](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake#L70)
-  * Performs an ElasticSearch import that indexes the milestones data.
+- [sudo gitlab-rake gitlab:elastic:index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - This is a wrapper task. It does the following:
+    - `sudo gitlab-rake gitlab:elastic:create_empty_index`
+    - `sudo gitlab-rake gitlab:elastic:clear_index_status`
+    - `sudo gitlab-rake gitlab:elastic:index_wikis`
+    - `sudo gitlab-rake gitlab:elastic:index_database`
+    - `sudo gitlab-rake gitlab:elastic:index_repositories`
+- [sudo gitlab-rake gitlab:elastic:index_repositories_async](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - This iterates over all projects and places them in batches. It then sends these batches to the background via sidekiq jobs to be indexed.
+- [sudo gitlab-rake gitlab:elastic:index_repositories_status](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - This determines the overall status of the indexing. It is done by counting the total number of indexed projects, dividing by a count of the total number of projects, then multiplying by 100.
+- [sudo gitlab-rake gitlab:elastic:index_repositories](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - This iterates over all projects and places them in batches. It then performs indexing on said batches synchronously.
+- [sudo gitlab-rake gitlab:elastic:index_wikis](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Iterates over every project, determines if said project contains wiki data, and then indexes the blobs (content) of said wiki data.
+- [sudo gitlab-rake gitlab:elastic:index_database](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - This is a [rake multitask](https://www.rubydoc.info/github/ruby/rake/Rake/MultiTask). It does the following:
+    - `sudo gitlab-rake gitlab:elastic:index_projects`
+    - `sudo gitlab-rake gitlab:elastic:index_issues`
+    - `sudo gitlab-rake gitlab:elastic:index_merge_requests`
+    - `sudo gitlab-rake gitlab:elastic:index_snippets`
+    - `sudo gitlab-rake gitlab:elastic:index_notes`
+    - `sudo gitlab-rake gitlab:elastic:index_milestones`
+- [sudo gitlab-rake gitlab:elastic:create_empty_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - This generates an empty index on the ElasticSearch side.
+- [sudo gitlab-rake gitlab:elastic:clear_index_status](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - This deletes all instances of IndexStatus for all projects.
+- [sudo gitlab-rake gitlab:elastic:delete_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - This removes the GitLab index on the ElasticSearch instance.
+- [sudo gitlab-rake gitlab:elastic:recreate_index](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Does the same thing as `sudo gitlab-rake gitlab:elastic:create_empty_index`
+- [sudo gitlab-rake gitlab:elastic:add_feature_visibility_levels_to_project](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Adds visibility information to the indices for projects.
+- [sudo gitlab-rake gitlab:elastic:index_projects](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Performs an ElasticSearch import that indexes projects data.
+- [sudo gitlab-rake gitlab:elastic:index_issues](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Performs an ElasticSearch import that indexes issues data.
+- [sudo gitlab-rake gitlab:elastic:index_merge_requests](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Performs an ElasticSearch import that indexes merge requests data.
+- [sudo gitlab-rake gitlab:elastic:index_snippets](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Performs an ElasticSearch import that indexes the snippets data.
+- [sudo gitlab-rake gitlab:elastic:index_notes](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Performs an ElasticSearch import that indexes the notes data.
+- [sudo gitlab-rake gitlab:elastic:index_milestones](https://gitlab.com/gitlab-org/gitlab-ee/blob/master/ee/lib/tasks/gitlab/elastic.rake)
+  - Performs an ElasticSearch import that indexes the milestones data.
 
 ### Environment Variables
 
 In addition to the rake tasks, there are some environment variables that can be used to modify the process:
 
-| Environment Variable | Data Type | What it does                                                                |
-| -------------------- |:---------:| --------------------------------------------------------------------------- |
-| BATCH                | Integer   | Modifies the size of the indexing batch (default 300)                       |
-| UPDATE_INDEX         | Boolean   | Tells the indexer to overwrite any existing index data (true|false)         |
-| ID_TO                | Integer   | Tells the indexer to only index projects less than or equal to the value    |
-| ID_FROM              | Integer   | Tells the indexer to only index projects greater than or equal to the value |
+| Environment Variable | Data Type | What it does                                                                 |
+| -------------------- |:---------:| ---------------------------------------------------------------------------- |
+| `BATCH`              | Integer   | Modifies the size of the indexing batch (default 300 projects).              |
+| `UPDATE_INDEX`       | Boolean   | Tells the indexer to overwrite any existing index data (true|false).         |
+| `ID_TO`              | Integer   | Tells the indexer to only index projects less than or equal to the value.    |
+| `ID_FROM`            | Integer   | Tells the indexer to only index projects greater than or equal to the value. |
 
-#### Batching
+### Batching
 
 The ability to apply batching makes the indexer run more efficiently. The default
-size of a batch is 300, which may or may not be ideal for your setup. Depending
-on the resources available to your GitLab instance (sidekiq) and your ElasticSearch
-instance (RAM, CPU), you may be able to increase or decrease the batch size for
-more efficiency.
+size of a batch is 300 projects, which may or may not be ideal for your setup.
+Depending on the resources available to your GitLab instance (sidekiq) and your
+Elasticsearch instance (RAM, CPU), you may be able to increase or decrease the
+batch size for more efficiency.
 
-* The larger the batch size is, the less sidekiq jobs and indexing requests get created.
-* The larger the batch size is, the more time and RAM it takes to process.
-* The smaller the batch size, the more sidekiq jobs, and indexing requests get created.
-* The smaller the batch size, the more CPU gets utilized.
+- The larger the batch size is, the less sidekiq jobs and indexing requests get created.
+- The larger the batch size is, the more time and RAM it takes to process.
+- The smaller the batch size, the more sidekiq jobs, and indexing requests get created.
+- The smaller the batch size, the more CPU gets utilized.
 
-Finding the ideal size can be tricky, and will vary from user to user. Generally
-speaking, if the default is not ideal for you, try reducing it to somewhere in
+Finding the ideal size can be tricky, and will vary from GitLab instance to GitLab instance.
+Generally speaking, if the default is not ideal for you, try reducing it to somewhere in
 the 50-150 range (for bigger sized repos) or 450-600 range (for many small-sized repos).
 
 Example use:
@@ -409,7 +409,7 @@ Example use:
 sudo gitlab-rake gitlab:elastic:index_repositories_async BATCH=50
 ```
 
-#### Indexing a specific project
+### Indexing a specific project
 
 Because the `ID_TO` and `ID_FROM` environment variables use the `or equal to` comparison, you can index only one project by using both these variables with the same project ID number:
 
@@ -423,23 +423,23 @@ I, [2019-03-04T21:27:05.215266 #3384]  INFO -- : Indexing GitLab User / test (ID
 
 When performing a search, the GitLab index will use the following scopes:
 
-| Scope Name     | What it searches       |
-| -------------- | ---------------------- |
-| commits        | Commit data            |
-| projects       | Project data (default) |
-| blobs          | Code                   |
-| issues         | Issue data             |
-| merge_requests | Merge Request data     |
-| milestones     | Milestone data         |
-| notes          | Note data              |
-| snippets       | Snippet data           |
-| wiki_blobs     | Wiki contents          |
+| Scope Name       | What it searches       |
+| ---------------- | ---------------------- |
+| `commits`        | Commit data            |
+| `projects`       | Project data (default) |
+| `blobs`          | Code                   |
+| `issues`         | Issue data             |
+| `merge_requests` | Merge Request data     |
+| `milestones`     | Milestone data         |
+| `notes`          | Note data              |
+| `snippets`       | Snippet data           |
+| `wiki_blobs`     | Wiki contents          |
 
 ## Tuning
 
 ### Deleted documents
 
-Whenever a change or deletion is made to an indexed GitLab object (a merge request description is changed, a file is deleted from the master branch in a repository, a project is deleted, etc), a document in the index is deleted.  However, since these are "soft" deletes, the overall number of "deleted documents", and therefore wasted space, increases.  Elasticsearch does the intelligent merging of segments in order to remove these deleted documents.  However, depending on the amount and type of activity in your GitLab installation, it's possible to see as much as 50% wasted space in the index.
+Whenever a change or deletion is made to an indexed GitLab object (a merge request description is changed, a file is deleted from the master branch in a repository, a project is deleted, etc), a document in the index is deleted.  However, since these are "soft" deletes, the overall number of "deleted documents", and therefore wasted space, increases.  Elasticsearch does intelligent merging of segments in order to remove these deleted documents.  However, depending on the amount and type of activity in your GitLab installation, it's possible to see as much as 50% wasted space in the index.
 
 In general, we recommend simply letting Elasticseach merge and reclaim space automatically, with the default settings.  From [Lucene's Handling of Deleted Documents](https://www.elastic.co/blog/lucenes-handling-of-deleted-documents "Lucene's Handling of Deleted Documents"), _"Overall, besides perhaps decreasing the maximum segment size, it is best to leave Lucene's defaults as-is and not fret too much about when deletes are reclaimed."_
 

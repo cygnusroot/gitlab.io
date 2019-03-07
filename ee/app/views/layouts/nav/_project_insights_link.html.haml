@@ -1,0 +1,6 @@
+- if project_nav_tab?(:project_insights)
+  / Authorization? Who should be able to view this page?
+  = nav_link(path: 'projects/insights#show') do
+    = link_to project_insights_path(@project), title: _('Insights'), class: 'shortcuts-project-insights' do
+      %span
+        = _('Insights')

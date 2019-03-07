@@ -1,9 +1,28 @@
 require './spec/support/sidekiq'
+require 'digest/md5'
 
 # rubocop:disable Rails/Output
 
 Sidekiq::Testing.inline! do
   Gitlab::Seeder.quiet do
+    def create_group_labels(group)
+      10.times do
+        label_title = FFaker::Product.brand
+        Labels::CreateService
+          .new(title: label_title, color: "##{Digest::MD5.hexdigest(label_title)[0..5]}")
+          .execute(group: group)
+      end
+    end
+
+    def create_project_labels(project)
+      5.times do
+        label_title = FFaker::Vehicle.model
+        Labels::CreateService
+          .new(title: label_title, color: "##{Digest::MD5.hexdigest(label_title)[0..5]}")
+          .execute(project: project)
+      end
+    end
+
     Gitlab::Seeder.without_gitaly_timeout do
       project_urls = %w[
         https://gitlab.com/gitlab-org/gitlab-test.git
@@ -60,9 +79,10 @@ Sidekiq::Testing.inline! do
             path: group_path
           )
           group.description = FFaker::Lorem.sentence
-          group.save
+          group.save!
 
           group.add_owner(User.first)
+          create_group_labels(group)
         end
 
         project_path.gsub!(".git", "")
@@ -94,6 +114,7 @@ Sidekiq::Testing.inline! do
         end
 
         if project.valid? && project.valid_repo?
+          create_project_labels(project)
           print '.'
         else
           puts project.errors.full_messages

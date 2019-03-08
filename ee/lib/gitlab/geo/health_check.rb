@@ -7,30 +7,16 @@ module Gitlab
         raise NotImplementedError.new('Geo is only compatible with PostgreSQL') unless Gitlab::Database.postgresql?
 
         return '' unless Gitlab::Geo.secondary?
+
         return 'Geo database configuration file is missing.' unless Gitlab::Geo.geo_database_configured?
-        return 'Geo node has a database that is not configured for streaming replication with the primary node.' unless database_secondary?
+        return 'Geo node has a database that is writable which is an indication it is not configured for replication with the primary node.' unless Gitlab::Database.db_read_only?
         return 'Geo node does not appear to be replicating the database from the primary node.' if Gitlab::Database.postgresql_9_6_or_greater? && !streaming_active?
-
-        database_version  = get_database_version.to_i
-        migration_version = get_migration_version.to_i
-
-        if database_version != migration_version
-          return "Current Geo database version (#{database_version}) does not match latest migration (#{migration_version}).\n"\
-                 'You may have to run `gitlab-rake geo:db:migrate` as root on the secondary.'
-        end
-
+        return "Geo database version (#{database_version}) does not match latest migration (#{migration_version}).\nYou may have to run `gitlab-rake geo:db:migrate` as root on the secondary." unless database_migration_version_match?
         return 'Geo database is not configured to use Foreign Data Wrapper.' unless Gitlab::Geo::Fdw.enabled?
 
         unless Gitlab::Geo::Fdw.foreign_tables_up_to_date?
           output = "Geo database has an outdated FDW remote schema."
-
-          foreign_schema_tables_count = Gitlab::Geo::Fdw.foreign_schema_tables_count
-          gitlab_schema_tables_count = Gitlab::Geo::Fdw.gitlab_schema_tables_count
-
-          unless gitlab_schema_tables_count == foreign_schema_tables_count
-            output = "#{output} It contains #{foreign_schema_tables_count} of #{gitlab_schema_tables_count} expected tables."
-          end
-
+          output = "#{output} It contains #{foreign_schema_tables_count} of #{gitlab_schema_tables_count} expected tables." unless schema_tables_match?
           return output
         end
 
@@ -71,35 +57,51 @@ module Gitlab
         @db_post_migrate_path ||= File.join(Rails.root, 'ee', 'db', 'geo', 'post_migrate')
       end
 
-      def get_database_version
-        if defined?(ActiveRecord)
-          connection = ::Geo::BaseRegistry.connection
-          schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
+      def database_version
+        @database_version ||= begin
+          if defined?(ActiveRecord)
+            connection = ::Geo::BaseRegistry.connection
+            schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
 
-          if connection.data_source_exists?(schema_migrations_table_name)
-            connection.execute("SELECT MAX(version) AS version FROM #{schema_migrations_table_name}")
-                      .first
-                      .fetch('version')
+            if connection.data_source_exists?(schema_migrations_table_name)
+              connection.execute("SELECT MAX(version) AS version FROM #{schema_migrations_table_name}")
+                        .first
+                        .fetch('version')
+            end
           end
         end
       end
 
-      def get_migration_version
-        latest_migration = nil
+      def migration_version
+        @migration_version ||= begin
+          latest_migration = nil
 
-        Dir[File.join(db_migrate_path, "[0-9]*_*.rb"), File.join(db_post_migrate_path, "[0-9]*_*.rb")].each do |f|
-          timestamp = f.scan(/0*([0-9]+)_[_.a-zA-Z0-9]*.rb/).first.first rescue -1
+          Dir[File.join(db_migrate_path, "[0-9]*_*.rb"), File.join(db_post_migrate_path, "[0-9]*_*.rb")].each do |f|
+            timestamp = f.scan(/0*([0-9]+)_[_.a-zA-Z0-9]*.rb/).first.first rescue -1
 
-          if latest_migration.nil? || timestamp.to_i > latest_migration.to_i
-            latest_migration = timestamp
+            if latest_migration.nil? || timestamp.to_i > latest_migration.to_i
+              latest_migration = timestamp
+            end
           end
-        end
 
-        latest_migration
+          latest_migration
+        end
       end
 
-      def database_secondary?
-        Gitlab::Database.db_read_only?
+      def database_migration_version_match?
+        database_version.to_i == migration_version.to_i
+      end
+
+      def gitlab_schema_tables_count
+        @gitlab_schema_tables_count ||= Gitlab::Geo::Fdw.gitlab_schema_tables_count
+      end
+
+      def foreign_schema_tables_count
+        @foreign_schema_tables_count ||= Gitlab::Geo::Fdw.foreign_schema_tables_count
+      end
+
+      def schema_tables_match?
+        gitlab_schema_tables_count == foreign_schema_tables_count
       end
 
       def streaming_active?

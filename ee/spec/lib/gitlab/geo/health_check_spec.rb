@@ -72,7 +72,7 @@ describe Gitlab::Geo::HealthCheck, :geo do
       allow(described_class).to receive(:database_secondary?).and_return(true)
       allow(described_class).to receive(:streaming_active?).and_return(false)
 
-      expect(subject.perform_checks).to match(/The Geo node does not appear to be replicating the database from the primary node/)
+      expect(subject.perform_checks).to match(/Geo node does not appear to be replicating the database from the primary node/)
     end
 
     it 'returns an error when streaming is not active and Postgresql does not support pg_stat_wal_receiver' do
@@ -89,7 +89,7 @@ describe Gitlab::Geo::HealthCheck, :geo do
 
       allow(Gitlab::Geo::Fdw).to receive(:enabled?) { false }
 
-      expect(subject.perform_checks).to match(/The Geo database is not configured to use Foreign Data Wrapper/)
+      expect(subject.perform_checks).to match(/Geo database is not configured to use Foreign Data Wrapper/)
     end
 
     it 'returns an error when FDW remote table is not in sync but has same amount of tables' do
@@ -100,7 +100,7 @@ describe Gitlab::Geo::HealthCheck, :geo do
       allow(Gitlab::Geo::Fdw).to receive(:foreign_schema_tables_count) { 1 }
       allow(Gitlab::Geo::Fdw).to receive(:gitlab_schema_tables_count) { 1 }
 
-      expect(subject.perform_checks).to match(/The Geo database has an outdated FDW remote schema\./)
+      expect(subject.perform_checks).to match(/Geo database has an outdated FDW remote schema\./)
     end
 
     it 'returns an error when FDW remote table is not in sync and has same different amount of tables' do
@@ -111,7 +111,7 @@ describe Gitlab::Geo::HealthCheck, :geo do
       allow(Gitlab::Geo::Fdw).to receive(:foreign_schema_tables_count) { 1 }
       allow(Gitlab::Geo::Fdw).to receive(:gitlab_schema_tables_count) { 2 }
 
-      expect(subject.perform_checks).to match(/The Geo database has an outdated FDW remote schema\. It contains [0-9]+ of [0-9]+ expected tables/)
+      expect(subject.perform_checks).to match(/Geo database has an outdated FDW remote schema\. It contains [0-9]+ of [0-9]+ expected tables/)
     end
   end
 

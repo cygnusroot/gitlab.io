@@ -7,9 +7,9 @@ module Gitlab
         raise NotImplementedError.new('Geo is only compatible with PostgreSQL') unless Gitlab::Database.postgresql?
 
         return '' unless Gitlab::Geo.secondary?
-        return 'The Geo database configuration file is missing.' unless Gitlab::Geo.geo_database_configured?
-        return 'The Geo node has a database that is not configured for streaming replication with the primary node.' unless self.database_secondary?
-        return 'The Geo node does not appear to be replicating the database from the primary node.' if Gitlab::Database.pg_stat_wal_receiver_supported? && !self.streaming_active?
+        return 'Geo database configuration file is missing.' unless Gitlab::Geo.geo_database_configured?
+        return 'Geo node has a database that is not configured for streaming replication with the primary node.' unless self.database_secondary?
+        return 'Geo node does not appear to be replicating the database from the primary node.' if Gitlab::Database.pg_stat_wal_receiver_supported? && !self.streaming_active?
 
         database_version  = self.get_database_version.to_i
         migration_version = self.get_migration_version.to_i
@@ -19,10 +19,10 @@ module Gitlab
                  'You may have to run `gitlab-rake geo:db:migrate` as root on the secondary.'
         end
 
-        return 'The Geo database is not configured to use Foreign Data Wrapper.' unless Gitlab::Geo::Fdw.enabled?
+        return 'Geo database is not configured to use Foreign Data Wrapper.' unless Gitlab::Geo::Fdw.enabled?
 
         unless Gitlab::Geo::Fdw.foreign_tables_up_to_date?
-          output = "The Geo database has an outdated FDW remote schema."
+          output = "Geo database has an outdated FDW remote schema."
 
           foreign_schema_tables_count = Gitlab::Geo::Fdw.foreign_schema_tables_count
           gitlab_schema_tables_count = Gitlab::Geo::Fdw.gitlab_schema_tables_count

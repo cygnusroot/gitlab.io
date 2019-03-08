@@ -10,7 +10,7 @@ module Gitlab
 
         return 'Geo database configuration file is missing.' unless Gitlab::Geo.geo_database_configured?
         return 'Geo node has a database that is writable which is an indication it is not configured for replication with the primary node.' unless Gitlab::Database.db_read_only?
-        return 'Geo node does not appear to be replicating the database from the primary node.' if Gitlab::Database.postgresql_9_6_or_greater? && !streaming_active?
+        return 'Geo node does not appear to be replicating the database from the primary node.' if replication_enabled? && !replication_working?
         return "Geo database version (#{database_version}) does not match latest migration (#{migration_version}).\nYou may have to run `gitlab-rake geo:db:migrate` as root on the secondary." unless database_migration_version_match?
         return 'Geo database is not configured to use Foreign Data Wrapper.' unless Gitlab::Geo::Fdw.enabled?
 
@@ -104,15 +104,41 @@ module Gitlab
         gitlab_schema_tables_count == foreign_schema_tables_count
       end
 
-      def streaming_active?
-        # Get a streaming status
-        # This only works for Postgresql 9.6 and greater
-        pid =
-          ActiveRecord::Base.connection.select_values('
-          SELECT pid FROM pg_stat_wal_receiver;')
-          .first
+      def replication_enabled?
+        streaming_replication_enabled? || archive_recovery_replication_enabled?
+      end
 
-        pid.to_i > 0
+      def archive_recovery_replication_enabled?
+        !streaming_replication_enabled? && some_replication_active?
+      end
+
+      def streaming_replication_enabled?
+        !ActiveRecord::Base.connection
+          .execute("SELECT * FROM #{Gitlab::Database.pg_last_wal_receive_lsn}()")
+          .first['pg_last_xlog_receive_location']
+          .nil?
+      end
+
+      def some_replication_active?
+        # Is some sort of replication active?
+        !ActiveRecord::Base.connection
+          .execute("SELECT * FROM #{Gitlab::Database.pg_last_xact_replay_timestamp}()")
+          .first['pg_last_xact_replay_timestamp']
+          .nil?
+      end
+
+      def streaming_replication_active?
+        # This only works for Postgresql 9.6 and greater
+        ActiveRecord::Base.connection
+          .select_values('SELECT pid FROM pg_stat_wal_receiver')
+          .first
+          .to_i > 0
+      end
+
+      def replication_working?
+        return streaming_replication_active? if streaming_replication_enabled?
+
+        some_replication_active?
       end
     end
   end

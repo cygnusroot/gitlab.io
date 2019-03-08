@@ -123,4 +123,28 @@ describe Gitlab::Geo::HealthCheck, :geo do
       expect { subject.perform_checks }.to raise_error(NotImplementedError)
     end
   end
+
+  describe '#db_replication_lag_seconds' do
+    before do
+      query = 'SELECT CASE WHEN pg_last_xlog_receive_location() = pg_last_xlog_receive_location() THEN 0 ELSE EXTRACT (EPOCH FROM now() - pg_last_xact_replay_timestamp())::INTEGER END AS replication_lag'
+      allow(subject).to receive(:db_replication_lag_seconds_query).and_return(query)
+      allow(ActiveRecord::Base).to receive_message_chain('connection.execute').with(no_args).with(query).and_return([{ 'replication_lag' => lag_in_seconds }])
+    end
+
+    context 'when there is no lag' do
+      let(:lag_in_seconds) { nil }
+
+      it 'returns 0 seconds' do
+        expect(subject.db_replication_lag_seconds).to eq(0)
+      end
+    end
+
+    context 'when there is lag' do
+      let(:lag_in_seconds) { 7 }
+
+      it 'returns the number of seconds' do
+        expect(subject.db_replication_lag_seconds).to eq(7)
+      end
+    end
+  end
 end

@@ -41,23 +41,25 @@ module Gitlab
 
       def db_replication_lag_seconds
         # Obtain the replication lag in seconds
-        lag =
-          ActiveRecord::Base.connection.execute(<<-SQL.squish)
-            SELECT CASE
-                   WHEN #{Gitlab::Database.pg_last_wal_receive_lsn}() = #{Gitlab::Database.pg_last_wal_receive_lsn}()
-                    THEN 0
-                   ELSE
-                    EXTRACT (EPOCH FROM now() - pg_last_xact_replay_timestamp())::INTEGER
-                   END
-                   AS replication_lag
-          SQL
+        ActiveRecord::Base.connection
+          .execute(db_replication_lag_seconds_query)
           .first
-          .fetch('replication_lag')
-
-        lag.present? ? lag.to_i : lag
+          .fetch('replication_lag', 0).to_i
       end
 
       private
+
+      def db_replication_lag_seconds_query
+        <<-SQL.squish
+          SELECT CASE
+            WHEN #{Gitlab::Database.pg_last_wal_receive_lsn}() = #{Gitlab::Database.pg_last_wal_receive_lsn}()
+              THEN 0
+            ELSE
+              EXTRACT (EPOCH FROM now() - #{Gitlab::Database.pg_last_xact_replay_timestamp}())::INTEGER
+            END
+            AS replication_lag
+          SQL
+      end
 
       def db_migrate_path
         # Lazy initialisation so Rails.root will be defined

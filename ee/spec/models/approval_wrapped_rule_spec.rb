@@ -28,19 +28,39 @@ describe ApprovalWrappedRule do
       rule.users << approver2
     end
 
-    context 'when approvals_required is greater than approved approver count' do
+    context 'when approvals_required is greater than approvers number' do
       let(:approvals_required) { 8 }
 
-      it 'returns approvals still needed' do
-        expect(subject.approvals_left).to eq(6)
+      context 'when there are no unactioned approvers' do
+        it 'returns 0' do
+          expect(subject.approvals_left).to eq(0)
+        end
+      end
+
+      context 'when there is still one unactioned approver' do
+        it 'returns unactioned approver count' do
+          rule.users << approver3
+
+          expect(subject.approvals_left).to eq(1)
+        end
       end
     end
 
     context 'when approvals_required is less than approved approver count' do
       let(:approvals_required) { 1 }
 
-      it 'returns zero' do
-        expect(subject.approvals_left).to eq(0)
+      context 'when there are no unactioned approvers' do
+        it 'returns 0' do
+          expect(subject.approvals_left).to eq(0)
+        end
+      end
+
+      context 'when there is still one unactioned approver' do
+        it 'returns unactioned approver count' do
+          rule.users << approver3
+
+          expect(subject.approvals_left).to eq(0)
+        end
       end
     end
   end
@@ -166,10 +186,10 @@ describe ApprovalWrappedRule do
 
   describe '#approvals_required' do
     context 'for regular rules' do
-      let(:rule) { create(:approval_merge_request_rule, approvals_required: 19) }
+      let(:rule) { create(:approval_merge_request_rule, approvals_required: 19, users: [approver1, approver2, approver3]) }
 
-      it 'returns the attribute saved on the model' do
-        expect(subject.approvals_required).to eq(19)
+      it 'returns the model attribute capped by available approvers' do
+        expect(subject.approvals_required).to eq(3)
       end
     end
 

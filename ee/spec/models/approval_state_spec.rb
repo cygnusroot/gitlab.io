@@ -283,12 +283,12 @@ describe ApprovalState do
 
     describe '#approvals_left' do
       before do
-        create_rule(approvals_required: 5)
-        create_rule(approvals_required: 7)
+        create_rule(approvals_required: 1, users: [approver1])
+        create_rule(approvals_required: 2, users: [approver1, approver2])
       end
 
       it 'sums approvals_left from rules' do
-        expect(subject.approvals_left).to eq(12)
+        expect(subject.approvals_left).to eq(3)
       end
 
       context 'when approval feature is unavailable' do
@@ -430,17 +430,15 @@ describe ApprovalState do
       let(:stranger) { create(:user) }
 
       context 'when there is one approver required' do
-        let!(:rule) { create_rule(approvals_required: 1) }
+        let!(:rule) { create_rule(approvals_required: 1, users: approvers) }
 
         context 'when that approver is the MR author' do
-          before do
-            rule.users << author
-          end
+          let(:approvers) { [author] }
 
           it_behaves_like 'authors self-approval authorization'
 
-          it 'requires one approval' do
-            expect(subject.approvals_left).to eq(1)
+          it 'requires no approval as there is no explicit approver' do
+            expect(subject.approvals_left).to eq(0)
           end
 
           it 'allows any other project member with write access to approve the MR' do
@@ -456,9 +454,7 @@ describe ApprovalState do
         end
 
         context 'when that approver is not the MR author' do
-          before do
-            rule.users << approver
-          end
+          let(:approvers) { [approver] }
 
           it 'requires one approval' do
             expect(subject.approvals_left).to eq(1)
@@ -477,17 +473,15 @@ describe ApprovalState do
       end
 
       context 'when there are multiple approvers required' do
-        let!(:rule) { create_rule(approvals_required: 3) }
+        let!(:rule) { create_rule(approvals_required: 3, users: approvers) }
 
         context 'when one of those approvers is the MR author' do
-          before do
-            rule.users = [author, approver, approver2]
-          end
+          let(:approvers) { [author, approver, approver2] }
 
           it_behaves_like 'authors self-approval authorization'
 
-          it 'requires the original number of approvals' do
-            expect(subject.approvals_left).to eq(3)
+          it 'requires the number of approvals equal to unactioned eligible approver size' do
+            expect(subject.approvals_left).to eq(2)
           end
 
           it 'allows any other other approver to approve the MR' do
@@ -504,8 +498,8 @@ describe ApprovalState do
               create(:approval, user: approver2, merge_request: merge_request)
             end
 
-            it 'requires the original number of approvals' do
-              expect(subject.approvals_left).to eq(1)
+            it 'requires no more approvals' do
+              expect(subject.approvals_left).to eq(0)
             end
 
             it 'does not allow the author to approve the MR' do
@@ -561,15 +555,13 @@ describe ApprovalState do
             end
 
             it "returns sum of each rule's approvals_left" do
-              expect(subject.approvals_left).to eq(1)
+              expect(subject.approvals_left).to eq(0)
             end
           end
         end
 
         context 'when the approvers do not contain the MR author' do
-          before do
-            rule.users = [developer, approver, approver2]
-          end
+          let(:approvers) { [developer, approver, approver2] }
 
           it 'requires the original number of approvals' do
             expect(subject.approvals_left).to eq(3)
@@ -872,13 +864,13 @@ describe ApprovalState do
     end
 
     describe '#approvals_left' do
-      let(:rule1) { create_unapproved_rule(approvals_required: 5) }
-      let(:rule2) { create_unapproved_rule(approvals_required: 7) }
+      let(:rule1) { create_unapproved_rule(approvals_required: 1, users: [approver1]) }
+      let(:rule2) { create_unapproved_rule(approvals_required: 2, users: [approver1, approver2]) }
 
       it 'sums approvals_left from rules' do
         create_rules
 
-        expect(subject.approvals_left).to eq(5)
+        expect(subject.approvals_left).to eq(1)
       end
     end
 
@@ -1000,17 +992,15 @@ describe ApprovalState do
       let(:stranger) { create(:user) }
 
       context 'when there is one approver required' do
-        let!(:rule) { create_rule(approvals_required: 1) }
+        let!(:rule) { create_rule(approvals_required: 1, users: approvers) }
 
         context 'when that approver is the MR author' do
-          before do
-            rule.users << author
-          end
+          let(:approvers) { [author] }
 
           it_behaves_like 'authors self-approval authorization'
 
-          it 'requires one approval' do
-            expect(subject.approvals_left).to eq(1)
+          it 'requires no approval as there is no explicit approver' do
+            expect(subject.approvals_left).to eq(0)
           end
 
           it 'allows any other project member with write access to approve the MR' do
@@ -1026,9 +1016,7 @@ describe ApprovalState do
         end
 
         context 'when that approver is not the MR author' do
-          before do
-            rule.users << approver
-          end
+          let(:approvers) { [approver] }
 
           it 'requires one approval' do
             expect(subject.approvals_left).to eq(1)
@@ -1047,17 +1035,15 @@ describe ApprovalState do
       end
 
       context 'when there are multiple approvers required' do
-        let!(:rule) { create_rule(approvals_required: 3) }
+        let!(:rule) { create_rule(approvals_required: 3, users: approvers) }
 
         context 'when one of those approvers is the MR author' do
-          before do
-            rule.users = [author, approver, approver2]
-          end
+          let(:approvers) { [author, approver, approver2] }
 
           it_behaves_like 'authors self-approval authorization'
 
-          it 'requires the original number of approvals' do
-            expect(subject.approvals_left).to eq(3)
+          it 'requires the number of approvals equal to unactioned eligible approver size' do
+            expect(subject.approvals_left).to eq(2)
           end
 
           it 'allows any other other approver to approve the MR' do
@@ -1074,8 +1060,8 @@ describe ApprovalState do
               create(:approval, user: approver2, merge_request: merge_request)
             end
 
-            it 'requires the original number of approvals' do
-              expect(subject.approvals_left).to eq(1)
+            it 'requires no more approvals' do
+              expect(subject.approvals_left).to eq(0)
             end
 
             it 'does not allow the author to approve the MR' do
@@ -1131,15 +1117,13 @@ describe ApprovalState do
             end
 
             it "returns sum of each rule's approvals_left" do
-              expect(subject.approvals_left).to eq(1)
+              expect(subject.approvals_left).to eq(0)
             end
           end
         end
 
         context 'when the approvers do not contain the MR author' do
-          before do
-            rule.users = [developer, approver, approver2]
-          end
+          let(:approvers) { [developer, approver, approver2] }
 
           it 'requires the original number of approvals' do
             expect(subject.approvals_left).to eq(3)

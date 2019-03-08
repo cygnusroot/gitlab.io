@@ -29,6 +29,7 @@ class ApprovalMergeRequestFallback
     @approvals_required ||= [merge_request.approvals_before_merge.to_i,
                              project.min_fallback_approvals].max
   end
+  alias_method :raw_approvals_required, :approvals_required
 
   def approvals_left
     @approvals_left ||= [approvals_required - approved_by_users.size, 0].max

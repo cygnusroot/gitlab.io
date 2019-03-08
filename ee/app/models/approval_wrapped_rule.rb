@@ -24,7 +24,7 @@ class ApprovalWrappedRule
   end
 
   def approvers
-    ApprovalState.filter_author(@approval_rule.approvers, merge_request)
+    @approvers ||= ApprovalState.filter_author(@approval_rule.approvers, merge_request)
   end
 
   # @return [Array<User>] all approvers related to this rule
@@ -78,11 +78,11 @@ class ApprovalWrappedRule
   end
 
   def approvals_required
-    if code_owner?
-      code_owner_approvals_required
-    else
-      approval_rule.approvals_required
-    end
+    [raw_approvals_required, approvers.size].min
+  end
+
+  def raw_approvals_required
+    code_owner? ? code_owner_approvals_required : approval_rule.approvals_required
   end
 
   private

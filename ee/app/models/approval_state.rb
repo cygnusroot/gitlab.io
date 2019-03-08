@@ -62,7 +62,7 @@ class ApprovalState
   def approval_needed?
     return false unless project.feature_available?(:merge_request_approvers)
 
-    wrapped_approval_rules.any? { |rule| rule.approvals_required > 0 }
+    wrapped_approval_rules.any? { |rule| rule.raw_approvals_required > 0 }
   end
 
   def approved?

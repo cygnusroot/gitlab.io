@@ -3,16 +3,16 @@
 module Gitlab
   module Geo
     class HealthCheck
-      def self.perform_checks
+      def perform_checks
         raise NotImplementedError.new('Geo is only compatible with PostgreSQL') unless Gitlab::Database.postgresql?
 
         return '' unless Gitlab::Geo.secondary?
         return 'Geo database configuration file is missing.' unless Gitlab::Geo.geo_database_configured?
-        return 'Geo node has a database that is not configured for streaming replication with the primary node.' unless self.database_secondary?
-        return 'Geo node does not appear to be replicating the database from the primary node.' if Gitlab::Database.postgresql_9_6_or_greater? && !self.streaming_active?
+        return 'Geo node has a database that is not configured for streaming replication with the primary node.' unless database_secondary?
+        return 'Geo node does not appear to be replicating the database from the primary node.' if Gitlab::Database.postgresql_9_6_or_greater? && !streaming_active?
 
-        database_version  = self.get_database_version.to_i
-        migration_version = self.get_migration_version.to_i
+        database_version  = get_database_version.to_i
+        migration_version = get_migration_version.to_i
 
         if database_version != migration_version
           return "Current Geo database version (#{database_version}) does not match latest migration (#{migration_version}).\n"\
@@ -39,48 +39,7 @@ module Gitlab
         e.message
       end
 
-      def self.db_migrate_path
-        # Lazy initialisation so Rails.root will be defined
-        @db_migrate_path ||= File.join(Rails.root, 'ee', 'db', 'geo', 'migrate')
-      end
-
-      def self.db_post_migrate_path
-        # Lazy initialisation so Rails.root will be defined
-        @db_post_migrate_path ||= File.join(Rails.root, 'ee', 'db', 'geo', 'post_migrate')
-      end
-
-      def self.get_database_version
-        if defined?(ActiveRecord)
-          connection = ::Geo::BaseRegistry.connection
-          schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
-
-          if connection.data_source_exists?(schema_migrations_table_name)
-            connection.execute("SELECT MAX(version) AS version FROM #{schema_migrations_table_name}")
-                      .first
-                      .fetch('version')
-          end
-        end
-      end
-
-      def self.get_migration_version
-        latest_migration = nil
-
-        Dir[File.join(self.db_migrate_path, "[0-9]*_*.rb"), File.join(self.db_post_migrate_path, "[0-9]*_*.rb")].each do |f|
-          timestamp = f.scan(/0*([0-9]+)_[_.a-zA-Z0-9]*.rb/).first.first rescue -1
-
-          if latest_migration.nil? || timestamp.to_i > latest_migration.to_i
-            latest_migration = timestamp
-          end
-        end
-
-        latest_migration
-      end
-
-      def self.database_secondary?
-        Gitlab::Database.db_read_only?
-      end
-
-      def self.db_replication_lag_seconds
+      def db_replication_lag_seconds
         # Obtain the replication lag in seconds
         lag =
           ActiveRecord::Base.connection.execute(<<-SQL.squish)
@@ -98,7 +57,50 @@ module Gitlab
         lag.present? ? lag.to_i : lag
       end
 
-      def self.streaming_active?
+      private
+
+      def db_migrate_path
+        # Lazy initialisation so Rails.root will be defined
+        @db_migrate_path ||= File.join(Rails.root, 'ee', 'db', 'geo', 'migrate')
+      end
+
+      def db_post_migrate_path
+        # Lazy initialisation so Rails.root will be defined
+        @db_post_migrate_path ||= File.join(Rails.root, 'ee', 'db', 'geo', 'post_migrate')
+      end
+
+      def get_database_version
+        if defined?(ActiveRecord)
+          connection = ::Geo::BaseRegistry.connection
+          schema_migrations_table_name = ActiveRecord::Base.schema_migrations_table_name
+
+          if connection.data_source_exists?(schema_migrations_table_name)
+            connection.execute("SELECT MAX(version) AS version FROM #{schema_migrations_table_name}")
+                      .first
+                      .fetch('version')
+          end
+        end
+      end
+
+      def get_migration_version
+        latest_migration = nil
+
+        Dir[File.join(db_migrate_path, "[0-9]*_*.rb"), File.join(db_post_migrate_path, "[0-9]*_*.rb")].each do |f|
+          timestamp = f.scan(/0*([0-9]+)_[_.a-zA-Z0-9]*.rb/).first.first rescue -1
+
+          if latest_migration.nil? || timestamp.to_i > latest_migration.to_i
+            latest_migration = timestamp
+          end
+        end
+
+        latest_migration
+      end
+
+      def database_secondary?
+        Gitlab::Database.db_read_only?
+      end
+
+      def streaming_active?
         # Get a streaming status
         # This only works for Postgresql 9.6 and greater
         pid =

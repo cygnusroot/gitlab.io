@@ -75,10 +75,11 @@ describe Gitlab::Geo::HealthCheck, :geo do
       expect(subject.perform_checks).to match(/Geo node does not appear to be replicating the database from the primary node/)
     end
 
-    it 'returns an error when streaming is not active and Postgresql does not support pg_stat_wal_receiver' do
+    it 'returns no error when streaming is not active and Postgresql does not support pg_stat_wal_receiver' do
       allow(Gitlab::Database).to receive(:postgresql_9_6_or_greater?).and_return(false)
       allow(described_class).to receive(:database_secondary?).and_return(true)
       allow(described_class).to receive(:streaming_active?).and_return(false)
+      allow(Gitlab::Geo::Fdw).to receive(:foreign_tables_up_to_date?).and_return(true)
 
       expect(subject.perform_checks).to be_empty
     end

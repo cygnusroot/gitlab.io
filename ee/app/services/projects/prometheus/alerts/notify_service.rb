@@ -4,12 +4,14 @@ module Projects
   module Prometheus
     module Alerts
       class NotifyService < BaseService
+        include Gitlab::Utils::StrongMemoize
+
         def execute(token)
           return false unless valid_version?
           return false unless valid_alert_manager_token?(token)
 
           send_alert_email if send_email?
-          open_incident_issue
+          process_incident_issues if create_issue?
           persist_events
 
           true
@@ -25,6 +27,14 @@ module Projects
           Feature.enabled?(:incident_management)
         end
 
+        # TODO re-use in send_email? once that code is in `master`
+        def incident_management_setting
+          strong_memoize(:incident_management_setting) do
+            project.incident_management_setting ||
+              project.build_incident_management_setting
+          end
+        end
+
         def send_email?
           return firings.any? unless incident_management_feature_enabled?
           return false unless has_incident_management_license?
@@ -32,6 +42,13 @@ module Projects
           setting = project.incident_management_setting || project.build_incident_management_setting
 
           setting.send_email && firings.any?
+        end
+
+        def create_issue?
+          return unless firings.any?
+          return unless has_incident_management_license?
+
+          incident_management_setting.create_issue?
         end
 
         def firings
@@ -113,14 +130,10 @@ module Projects
             .prometheus_alerts_fired(project, firings)
         end
 
-        def open_incident_issue
-          return unless firings.any?
-
-          # TODO async?
-          firings.each do |firing_alert|
-            IncidentManagement::CreateIssueService
-              .new(project, nil, firing_alert)
-              .execute
+        def process_incident_issues
+          firings.each do |alert|
+            IncidentManagement::ProcessAlertWorker
+              .perform_async(project.id, alert)
           end
         end
 

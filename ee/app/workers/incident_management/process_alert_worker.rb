@@ -1,20 +1,16 @@
 # frozen_string_literal: true
 
 module IncidentManagement
-  class ProcessAlertsWorker
+  class ProcessAlertWorker
     include ApplicationWorker
 
     queue_namespace :incident_management
 
-    def perform(project_id, alerts)
-      return unless alerts.any?
-
+    def perform(project_id, alert)
       project = find_project(project_id)
       return unless project
 
-      alerts.each do |alert|
-        create_issue(project, alert)
-      end
+      create_issue(project, alert)
     end
 
     private

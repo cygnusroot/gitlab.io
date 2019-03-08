@@ -72,6 +72,10 @@ module Gitlab
       postgresql? && version.to_f < 10
     end
 
+    def self.postgresql_9_6_or_greater?
+      postgresql? && version.to_f >= 9.6
+    end
+
     def self.join_lateral_supported?
       postgresql? && version.to_f >= 9.3
     end

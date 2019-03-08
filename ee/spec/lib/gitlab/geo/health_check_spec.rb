@@ -68,7 +68,7 @@ describe Gitlab::Geo::HealthCheck, :geo do
     end
 
     it 'returns an error when streaming is not active and Postgresql supports pg_stat_wal_receiver' do
-      allow(Gitlab::Database).to receive(:pg_stat_wal_receiver_supported?).and_return(true)
+      allow(Gitlab::Database).to receive(:postgresql_9_6_or_greater?).and_return(true)
       allow(described_class).to receive(:database_secondary?).and_return(true)
       allow(described_class).to receive(:streaming_active?).and_return(false)
 
@@ -76,7 +76,7 @@ describe Gitlab::Geo::HealthCheck, :geo do
     end
 
     it 'returns an error when streaming is not active and Postgresql does not support pg_stat_wal_receiver' do
-      allow(Gitlab::Database).to receive(:pg_stat_wal_receiver_supported?).and_return(false)
+      allow(Gitlab::Database).to receive(:postgresql_9_6_or_greater?).and_return(false)
       allow(described_class).to receive(:database_secondary?).and_return(true)
       allow(described_class).to receive(:streaming_active?).and_return(false)
 

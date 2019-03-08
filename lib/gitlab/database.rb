@@ -84,10 +84,6 @@ module Gitlab
       postgresql? && version.to_f >= 9.4
     end
 
-    def self.pg_stat_wal_receiver_supported?
-      postgresql? && version.to_f >= 9.6
-    end
-
     # map some of the function names that changed between PostgreSQL 9 and 10
     # https://wiki.postgresql.org/wiki/New_in_postgres_10
     def self.pg_wal_lsn_diff

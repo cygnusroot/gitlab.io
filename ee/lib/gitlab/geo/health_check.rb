@@ -9,7 +9,7 @@ module Gitlab
         return '' unless Gitlab::Geo.secondary?
         return 'Geo database configuration file is missing.' unless Gitlab::Geo.geo_database_configured?
         return 'Geo node has a database that is not configured for streaming replication with the primary node.' unless self.database_secondary?
-        return 'Geo node does not appear to be replicating the database from the primary node.' if Gitlab::Database.pg_stat_wal_receiver_supported? && !self.streaming_active?
+        return 'Geo node does not appear to be replicating the database from the primary node.' if Gitlab::Database.postgresql_9_6_or_greater? && !self.streaming_active?
 
         database_version  = self.get_database_version.to_i
         migration_version = self.get_migration_version.to_i

@@ -95,7 +95,7 @@ The job definition shown below is supported on GitLab 11.5 and later versions _(
 It also requires the GitLab Runner 11.5 or later.
 For earlier versions, use the [previous job definitions](#previous-job-definitions).
 
-If you are on GitLab prior to 11.9, you can define it manually using the following snippet:
+If you are using GitLab prior to 11.9, you can define it manually using the following snippet:
 
 ```yaml
 dependency_scanning:

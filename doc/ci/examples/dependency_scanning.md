@@ -72,7 +72,7 @@ the last mention of the variable will take precedence.
 ### Overriding job definition
 
 If you want to override the job definition (for example, change properties like `variables` or `dependencies`), you need to declare
-its definition after the template inclusion and specify any additional keys under it: 
+its definition after the template inclusion and specify any additional keys under it. For example:
 
 ```yaml
 include:

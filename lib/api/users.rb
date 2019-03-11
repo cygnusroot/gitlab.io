@@ -33,6 +33,9 @@ module API
         end
         # rubocop: enable CodeReuse/ActiveRecord
 
+        params :optional_attributes_ee do
+        end
+
         params :optional_attributes do
           optional :skype, type: String, desc: 'The Skype username'
           optional :linkedin, type: String, desc: 'The LinkedIn username'
@@ -52,8 +55,7 @@ module API
           optional :private_profile, type: Boolean, desc: 'Flag indicating the user has a private profile'
           all_or_none_of :extern_uid, :provider
 
-          # EE
-          optional :shared_runners_minutes_limit, type: Integer, desc: 'Pipeline minutes quota for this user'
+          use :optional_attributes_ee
         end
 
         params :sort_params do
@@ -63,6 +65,8 @@ module API
                           desc: 'Return users sorted in ascending and descending order'
         end
       end
+
+      prepend EE::API::Users # rubocop: disable Cop/InjectEnterpriseEditionModule
 
       desc 'Get the list of users' do
         success Entities::UserBasic

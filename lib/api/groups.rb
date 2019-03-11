@@ -21,11 +21,6 @@ module API
       end
 
       params :optional_params_ee do
-        optional :membership_lock, type: Boolean, desc: 'Prevent adding new members to project membership within this group'
-        optional :ldap_cn, type: String, desc: 'LDAP Common Name'
-        optional :ldap_access, type: Integer, desc: 'A valid access level'
-        optional :shared_runners_minutes_limit, type: Integer, desc: '(admin-only) Pipeline minutes quota for this group'
-        all_or_none_of :ldap_cn, :ldap_access
       end
 
       params :optional_params do
@@ -100,7 +95,12 @@ module API
 
         present paginate(groups), options
       end
+
+      def require_admin_on_create
+      end
     end
+
+    prepend EE::API::Groups # rubocop: disable Cop/InjectEnterpriseEditionModule
 
     resource :groups do
       include CustomAttributesEndpoints
@@ -131,6 +131,8 @@ module API
         use :optional_params
       end
       post do
+        require_admin_on_create
+
         parent_group = find_group!(params[:parent_id]) if params[:parent_id].present?
         if parent_group
           authorize! :create_subgroup, parent_group
@@ -142,9 +144,6 @@ module API
           cn: params.delete(:ldap_cn),
           group_access: params.delete(:ldap_access)
         }
-
-        # EE
-        authenticated_as_admin! if params[:shared_runners_minutes_limit]
 
         group = ::Groups::CreateService.new(current_user, declared_params(include_missing: false)).execute
 
@@ -182,17 +181,6 @@ module API
       put ':id' do
         group = find_group!(params[:id])
         authorize! :admin_group, group
-
-        # Begin EE-specific block
-        if params[:shared_runners_minutes_limit].present? &&
-            group.shared_runners_minutes_limit.to_i !=
-                params[:shared_runners_minutes_limit].to_i
-          authenticated_as_admin!
-        end
-
-        params.delete(:file_template_project_id) unless
-          group.feature_available?(:custom_file_templates_for_namespace)
-        # End EE-specific block
 
         if ::Groups::UpdateService.new(group, current_user, declared_params(include_missing: false)).execute
           present group, with: Entities::GroupDetail, current_user: current_user

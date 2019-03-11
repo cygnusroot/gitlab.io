@@ -37,6 +37,16 @@ module EE
 
       scope :with_plan, -> { where.not(plan_id: nil) }
 
+      scope :with_shared_runners_minutes_limit, -> do
+        where("namespaces.shared_runners_minutes_limit IS NOT NULL AND " \
+              "namespaces.shared_runners_minutes_limit > 0")
+      end
+
+      scope :with_extra_shared_runners_minutes, -> do
+        where("namespaces.extra_shared_runners_minutes_limit IS NOT NULL AND " \
+              "namespaces.extra_shared_runners_minutes_limit > 0")
+      end
+
       delegate :shared_runners_minutes, :shared_runners_seconds, :shared_runners_seconds_last_reset,
         to: :namespace_statistics, allow_nil: true
 
@@ -138,8 +148,11 @@ module EE
     end
 
     def actual_shared_runners_minutes_limit
-      shared_runners_minutes_limit ||
+      if shared_runners_minutes_limit
+        shared_runners_minutes_limit + extra_shared_runners_minutes_limit.to_i
+      else
         ::Gitlab::CurrentSettings.shared_runners_minutes
+      end
     end
 
     def shared_runners_minutes_limit_enabled?

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Issuable do
+describe EE::Issuable do
   let(:issuable_class) { Issue }
   let(:issue) { create(:issue, title: 'An issue', description: 'A description') }
   let(:user) { create(:user) }

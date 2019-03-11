@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ::PrometheusAdapter, :use_clean_rails_memory_store_caching do
+describe PrometheusAdapter, :use_clean_rails_memory_store_caching do
   include PrometheusHelpers
   include ReactiveCachingHelpers
 

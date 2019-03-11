@@ -66,7 +66,7 @@ variables:
   DEP_SCAN_DISABLE_REMOTE_CHECKS: true
 ```
 
-Because template is evaluated [before](https://docs.gitlab.com/ee/ci/yaml/#include) the CI config,
+Because template is evaluated [before](../yaml/README.md#include) the pipeline configuration,
 the last mention of the variable will take precedence.
 
 ### Overriding job definition

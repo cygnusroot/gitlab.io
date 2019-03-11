@@ -4,7 +4,7 @@
 
 CAUTION: **Caution:**
 The CI/CD template for job definition is supported on GitLab 11.9 and later versions.
-For earlier versions, use the [manual job definition](#manual job definition).
+For earlier versions, use the [manual job definition](#manual-job-definition).
 
 This example shows how to run Dependency Scanning on your
 project's dependencies by using GitLab CI/CD.

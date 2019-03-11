@@ -55,7 +55,7 @@ Dependency scanning tool settings can be changed through environment variables. 
 - Job definition [template](#job-definition-template).
 - Dependency Scanning [README](https://gitlab.com/gitlab-org/security-products/dependency-scanning#settings).
 
-The customization itself is performed by leveraging the [`variables`](https://docs.gitlab.com/ee/ci/yaml/#variables)
+The customization itself is performed by using the [`variables`](https://docs.gitlab.com/ee/ci/yaml/#variables)
 section in the CI config:
 
 ```yaml

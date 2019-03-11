@@ -47,9 +47,11 @@ be automatically extracted and shown right in the merge request widget.
 
 ## Job execution customization
 
+You can customize dependency scanning job execution in various ways of different granularity.
+
 ### Scanning tool settings
 
-You can customize dependency scanning job execution via settings that can be updated through environment variables. These variables
+Dependency scanning tool settings can be changed through environment variables. These variables
 are documented in the [template](#job-definition-template) definition and in the Dependency Scanning
 [README](https://gitlab.com/gitlab-org/security-products/dependency-scanning#settings).
 

@@ -84,6 +84,10 @@ module Gitlab
       postgresql? && version.to_f >= 9.4
     end
 
+    def self.postgresql_minimum_supported_version?
+      postgresql_9_6_or_greater?
+    end
+
     # map some of the function names that changed between PostgreSQL 9 and 10
     # https://wiki.postgresql.org/wiki/New_in_postgres_10
     def self.pg_wal_lsn_diff

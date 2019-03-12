@@ -163,6 +163,14 @@ describe Gitlab::Database do
     end
   end
 
+  describe '.postgresql_minimum_supported_version?' do
+    it 'calls .postgresql_9_6_or_greater?' do
+      expect(described_class).to receive(:postgresql_9_6_or_greater?)
+
+      described_class.postgresql_minimum_supported_version?
+    end
+  end
+
   describe '.pg_wal_lsn_diff' do
     it 'returns old name when using PostgreSQL 9.6' do
       allow(described_class).to receive(:postgresql?).and_return(true)

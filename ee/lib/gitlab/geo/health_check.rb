@@ -38,7 +38,7 @@ module Gitlab
       def db_replication_lag_seconds_query
         <<-SQL.squish
           SELECT CASE
-            WHEN #{Gitlab::Database.pg_last_wal_receive_lsn}() = #{Gitlab::Database.pg_last_wal_receive_lsn}()
+            WHEN #{Gitlab::Database.pg_last_wal_receive_lsn}() = #{Gitlab::Database.pg_last_wal_replay_lsn}()
               THEN 0
             ELSE
               EXTRACT (EPOCH FROM now() - #{Gitlab::Database.pg_last_xact_replay_timestamp}())::INTEGER

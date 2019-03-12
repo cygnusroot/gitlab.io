@@ -114,16 +114,16 @@ module Gitlab
 
       def streaming_replication_enabled?
         !ActiveRecord::Base.connection
-          .execute("SELECT * FROM #{Gitlab::Database.pg_last_wal_receive_lsn}()")
-          .first['pg_last_xlog_receive_location']
+          .execute("SELECT * FROM #{Gitlab::Database.pg_last_wal_receive_lsn}() as result")
+          .first['result']
           .nil?
       end
 
       def some_replication_active?
         # Is some sort of replication active?
         !ActiveRecord::Base.connection
-          .execute("SELECT * FROM #{Gitlab::Database.pg_last_xact_replay_timestamp}()")
-          .first['pg_last_xact_replay_timestamp']
+          .execute("SELECT * FROM #{Gitlab::Database.pg_last_xact_replay_timestamp}() as result")
+          .first['result']
           .nil?
       end
 
